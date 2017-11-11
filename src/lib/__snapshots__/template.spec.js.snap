@@ -1,0 +1,33 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`template.createArgs() should decorate the given argsByKey with lodashs string manipulation methods and return a newly shaped object with the same keys. 1`] = `
+Object {
+  "bar": Object {
+    "camelCase": "barExample",
+    "kebabCase": "bar-example",
+    "lowerCase": "bar example",
+    "raw": "bar example",
+    "snakeCase": "bar_example",
+    "startCase": "Bar Example",
+    "upperCase": "BAR EXAMPLE",
+  },
+  "baz": Object {
+    "camelCase": "bazExample",
+    "kebabCase": "baz-example",
+    "lowerCase": "baz example",
+    "raw": "baz-example",
+    "snakeCase": "baz_example",
+    "startCase": "Baz Example",
+    "upperCase": "BAZ EXAMPLE",
+  },
+  "foo": Object {
+    "camelCase": "fooExample",
+    "kebabCase": "foo-example",
+    "lowerCase": "foo example",
+    "raw": "Foo example",
+    "snakeCase": "foo_example",
+    "startCase": "Foo Example",
+    "upperCase": "FOO EXAMPLE",
+  },
+}
+`;

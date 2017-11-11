@@ -1,0 +1,85 @@
+{
+  "name": "create-any-cli",
+  "version": "0.0.0-development",
+  "private": false,
+  "author": "Tyll Weiß <info@craft-interactive.de> (http://craft-interactive.de)",
+  "license": "MIT",
+  "description": "Effortlessly create new files or modules based upon templates in your application.",
+  "bin": {
+    "create": "./.bin/create"
+  },
+  "main": "./dist/api.js",
+  "scripts": {
+    "test": "npm run lint && npm run flow && npm run jest:coverage",
+    "lint": "eslint src",
+    "prettier": "prettier --write src/**/*.js",
+    "jest": "jest",
+    "jest:watch": "npm run jest -- --watch",
+    "jest:coverage": "npm run jest -- --coverage",
+    "build:clean": "rimraf dist",
+    "build:babel": "NODE_ENV=production babel src --out-dir dist --ignore spec.js",
+    "build:flow": "flow-copy-source -v src dist --ignore='*.spec.js'",
+    "prebuild": "npm run build:clean",
+    "build": "npm run build:babel && npm run build:flow",
+    "flow": "flow",
+    "flow-typed": "flow-typed",
+    "flow-typed-install": "flow-typed install --ignoreDeps=bundled peer --overwrite",
+    "prepare": "npm run flow-typed-install || true",
+    "prepublishOnly": "npm run build",
+    "precommit": "lint-staged && npm test"
+  },
+  "lint-staged": {
+    "src/**/*.{js,json,css}": [
+      "prettier --write",
+      "git add"
+    ]
+  },
+  "engines": {
+    "node": ">=8.9.0"
+  },
+  "keywords": [
+    "create",
+    "cli",
+    "create-",
+    "create-*",
+    "any",
+    "kickstart",
+    "bootstrap",
+    "blueprint"
+  ],
+  "devDependencies": {
+    "@immowelt/babel-preset-immowelt-node": "^1.1.0",
+    "@immowelt/eslint-config-immowelt-react": "^2.0.0",
+    "@immowelt/jest-preset-node": "^1.0.0",
+    "@immowelt/styleguide-javascript": "^1.0.6",
+    "babel-cli": "^6.26.0",
+    "eslint": "^4.4.1",
+    "flow-bin": "^0.58.0",
+    "flow-copy-source": "^1.2.1",
+    "flow-typed": "^2.1.2",
+    "husky": "^0.14.3",
+    "jest": "^21.0.0",
+    "lint-staged": "^4.1.2",
+    "prettier": "^1.6.1",
+    "rimraf": "^2.6.1"
+  },
+  "jest": {
+    "preset": "@immowelt/jest-preset-node"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Inkdpixels/create-any-cli.git"
+  },
+  "dependencies": {
+    "chalk": "^2.3.0",
+    "commander": "^2.11.0",
+    "execa": "^0.8.0",
+    "find-config-up": "^1.0.2",
+    "fs-extra": "^4.0.2",
+    "glob": "^7.1.2",
+    "inquirer": "^3.3.0",
+    "lodash": "^4.17.4",
+    "ora": "^1.3.0",
+    "yargs": "^10.0.3"
+  }
+}
