@@ -1,5 +1,5 @@
 {
-  "name": "<%= args.npmScope.raw %><%= args.appName.kebabCase %>-package",
+  "name": "{{=it.npmScope.raw}}{{=it.name.kebabCase}}",
   "dependencies": {
     "react": "16.0.0"
   }

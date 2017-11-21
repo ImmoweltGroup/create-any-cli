@@ -19,6 +19,7 @@
     "build:clean": "rimraf dist",
     "build:babel": "NODE_ENV=production babel src --out-dir dist --ignore spec.js",
     "build:flow": "flow-copy-source -v src dist --ignore='*.spec.js'",
+    "build:watch": "npm run build:babel -- -w",
     "prebuild": "npm run build:clean",
     "build": "npm run build:babel && npm run build:flow",
     "flow": "flow",
@@ -64,7 +65,10 @@
     "rimraf": "^2.6.1"
   },
   "jest": {
-    "preset": "@immowelt/jest-preset-node"
+    "preset": "@immowelt/jest-preset-node",
+    "modulePathIgnorePatterns": [
+      "<rootDir>/dist/"
+    ]
   },
   "repository": {
     "type": "git",
@@ -73,8 +77,8 @@
   "dependencies": {
     "chalk": "^2.3.0",
     "commander": "^2.11.0",
-    "execa": "^0.8.0",
-    "find-config-up": "^1.0.2",
+    "dot": "^1.1.2",
+    "find-config-up": "^1.1.0",
     "fs-extra": "^4.0.2",
     "glob": "^7.1.2",
     "inquirer": "^3.3.0",

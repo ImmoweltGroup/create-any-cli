@@ -11,6 +11,7 @@ dist
 
 # test results
 coverage
+examples/results
 
 # Ignore the symlink ".editorconfig" from the @immowelt/styleguide-javascript package.
 .editorconfig

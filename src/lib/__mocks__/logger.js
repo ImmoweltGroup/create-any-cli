@@ -10,5 +10,6 @@ const oraInstance = {
 
 module.exports = {
   ora: jest.fn(() => oraInstance),
-  fatal: jest.fn()
+  fatal: jest.fn(),
+  createMsg: jest.fn(() => '')
 };

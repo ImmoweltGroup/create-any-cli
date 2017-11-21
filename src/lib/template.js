@@ -1,22 +1,17 @@
 // @flow
 
-const path = require('path');
-const chalk = require('chalk');
-const lodash = require('lodash');
-const {ora} = require('./logger.js');
-const file = require('./file.js');
+import type {
+  DecoratedTemplateArgsType,
+  FilePatternListType,
+  TemplateArgsType,
+  TemplateConfigsByIdType
+} from './../types.js';
 
-type TemplateArgsType = {
-  [string]: {
-    raw: string,
-    snakeCase: string,
-    kebabCase: string,
-    camelCase: string,
-    lowerCase: string,
-    startCase: string,
-    upperCase: string
-  }
-};
+const path = require('path');
+const dot = require('dot');
+const lodash = require('lodash');
+const {ora, createMsg} = require('./logger.js');
+const file = require('./file.js');
 
 module.exports = {
   /**
@@ -25,7 +20,9 @@ module.exports = {
    * @param {Object} argsByKey The raw arguments by their keys.
    * @return {Object}          The input object transformed into an object with variant properties of the raw value.
    */
-  createArgs(argsByKey: {[string]: string}): TemplateArgsType {
+  createDecoratedTemplateArgs(argsByKey: {
+    [string]: string
+  }): DecoratedTemplateArgsType {
     const variants = [
       'snakeCase',
       'kebabCase',
@@ -36,10 +33,11 @@ module.exports = {
     ];
 
     return Object.keys(argsByKey).reduce(
-      (args: TemplateArgsType, argKey: string) => {
+      (args: DecoratedTemplateArgsType, argKey: string) => {
         const raw = argsByKey[argKey];
         const transformedArgs: Object = {
-          raw
+          raw,
+          upperCamelCase: lodash.upperFirst(lodash.camelCase(raw))
         };
 
         variants.forEach(methodName => {
@@ -76,85 +74,142 @@ module.exports = {
    * @return {Promise}             The Promise that resolves once the template got processed.
    */
   async processTemplateAndCreate(opts: {
-    files: string,
+    filePatterns: FilePatternListType,
+    srcDir: string,
     distDir: string,
-    args: Object
-  }) {
-    const createLogOutPut = (filePath: string, task: string) => {
-      return `${chalk.bold.white(task + ' file:')} ${chalk.dim(
-        this.trimFilePath(filePath)
-      )}`;
-    };
-    const {distDir, args} = opts;
+    args: TemplateArgsType,
+    templateSettings?: Object | void
+  }): Promise<void> {
+    const {distDir, srcDir, filePatterns, args, templateSettings = {}} = opts;
+
+    //
+    // Ensure that the directory exists and is empty.
+    //
+    await file.ensureDir(distDir);
+
+    const existingDistFiles = await file.readdirAsync(distDir);
+
+    if (existingDistFiles.length) {
+      console.warn(
+        `Target folder "${distDir}" is not empty, skipping any further tasks...`
+      );
+      return;
+    }
+
+    //
+    // If the directory is empty, resolve all files based on the patterns and
+    // process their dist paths and the contents.
+    //
     const nestedFilePaths = await Promise.all(
-      files.map(filePatternPath =>
-        file.globAsync(filePatternPath, {nodir: true, symlinks: false})
+      filePatterns.map(filePatternPath =>
+        file.globAsync(path.join(srcDir, filePatternPath), {
+          nodir: true,
+          symlinks: false
+        })
       )
     );
     const files = [].concat.apply([], nestedFilePaths);
 
-    await file.ensureDir(distDir);
-
     for (let filePath of files) {
-      const relativeFilePath = lodash.template(
-        filePath.replace(templateDir, '')
-      )({args});
+      const relativeFilePath = this.template(
+        filePath.replace(srcDir, ''),
+        args,
+        templateSettings
+      );
+      const trimmedRelativeFilePath = this.trimFilePath(relativeFilePath);
       const distFilePath = path.join(distDir, relativeFilePath);
 
       const fileSpinner = ora(
-        createLogOutPut(relativeFilePath, 'Reading')
+        createMsg('Reading file', trimmedRelativeFilePath)
       ).start();
       const contents = await file.readFileAsync(filePath, 'utf8');
 
-      fileSpinner.text = createLogOutPut(relativeFilePath, 'Processing');
-      const data = lodash.template(contents)({args});
+      fileSpinner.text = createMsg('Processing file', trimmedRelativeFilePath);
+      const data = this.template(contents, args, templateSettings);
 
-      fileSpinner.text = createLogOutPut(relativeFilePath, 'Writing');
+      fileSpinner.text = createMsg('Writing file', trimmedRelativeFilePath);
       await file.writeFileAsync(distFilePath, data);
 
       fileSpinner.succeed();
     }
   },
 
-  async resolveTemplates(
+  /**
+   * Resolves all template configurations in a given directory.
+   *
+   * @param  {String}         cwd      The directory to use in which all templates should be resolved from.
+   * @param  {Array<String>}  patterns The list of patterns to use when resolving the templates.
+   * @param  {String}         fileName An optional filename to use when looking up the configurations.
+   * @return {Promise}                 The promise that resolves with the template configurations by their key/id.
+   */
+  async resolveTemplateConfigsById(
     cwd: string,
-    patterns: Array<string>,
+    patterns: FilePatternListType,
     fileName?: string = 'create-config.js'
-  ) {
-    const nestedFolderPaths = await Promise.all(
-      patterns.map(pattern => file.globAsync(path.join(cwd, pattern)))
-    );
-    const folderPaths = [].concat.apply(
-      [path.join(cwd, 'node_modules')],
-      nestedFolderPaths
-    );
+  ): Promise<TemplateConfigsByIdType> {
     const nestedConfigPaths = await Promise.all(
-      folderPaths.map(async folderPath => {
-        return file.globAsync(path.join(folderPath, '**', fileName));
-      })
+      patterns.map(pattern =>
+        file.globAsync(path.join(cwd, pattern, '**', fileName))
+      )
     );
     const configPaths = [].concat.apply([], nestedConfigPaths);
-    const templatesById = {};
 
-    configPaths.forEach(configPath => {
-      const config = require(configPath);
+    return configPaths.reduce(
+      (templatesById: TemplateConfigsByIdType, configPath) => {
+        const config = file.require(configPath);
 
-      // ToDo: Enhance config validation.
-      if (typeof config.id !== 'string') {
-        return;
-      }
+        // ToDo: Enhance config validation.
+        if (typeof config !== 'object') {
+          console.warn(
+            `Unknown config type "${typeof config}" at "${
+              configPath
+            }" found, please export an object.`
+          );
 
-      //
-      // In case two templates with the same ID will be resolved,
-      // a warning will be printed and the latter one will be ignored.
-      //
-      if (templatesById[config.id]) {
-        return;
-      }
+          return templatesById;
+        }
 
-      templatesById[config.id] = config;
-    });
+        if (typeof config.id !== 'string') {
+          console.warn(
+            `No ID found in config exports of "${
+              configPath
+            }" found, please export an object containing an ID of type string.`
+          );
 
-    return templatesById;
+          return templatesById;
+        }
+
+        //
+        // In case two templates with the same ID will be resolved the latter one will be ignored.
+        //
+        if (templatesById[config.id]) {
+          return templatesById;
+        }
+
+        templatesById[config.id] = {
+          cwd: configPath.replace(fileName, ''),
+          config
+        };
+
+        return templatesById;
+      },
+      {}
+    );
+  },
+
+  /**
+   * Creates a template function for the given string and executes it immediately with the arguments.
+   *
+   * @param  {String} str              The contents to process.
+   * @param  {Object} args             The arguments to pass to the template fn.
+   * @param  {Object} templateSettings An optional settings object to use.
+   * @return {String}                  The processed template-
+   */
+  template(str: string, args: TemplateArgsType, templateSettings: Object = {}) {
+    return dot.template(str, {
+      ...templateSettings,
+      ...dot.templateSettings,
+      strip: false
+    })(args);
   }
 };

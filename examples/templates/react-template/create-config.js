@@ -1,20 +1,31 @@
 const path = require('path');
-const api = require('./../../../');
+const {argv} = require('yargs');
 
 module.exports = {
   id: 'react-template',
-  files: ['src/**'],
-  questions: [{
+  resolveFiles: async () => ['src/*'],
+  resolveQuestions: async (cwd) => [{
     type: 'input',
-    name: 'componentName',
-    message: 'What is the name for the React Component?'
-  }],
-  createTemplateArgs: async (answers) => {
-    return api.createArgs(answers);
-  },
-  resolveDestinationFolder: async (cwd, args) => {
-    console.log(cwd, args);
+    name: 'npmScope',
+    message: 'What is the NPM organization scope for the React Component?',
+    default: argv.npmScope,
+    filter: str => {
+      if (str && str.length) {
+        return `@${str.replace(/\W/g, '')}/`
+      }
 
-    return path.join(cwd, args.componentName.kebabCase);
+      return '';
+    }
+  }, {
+    type: 'input',
+    name: 'name',
+    message: 'What is the name for the React Component?',
+    default: argv.name,
+    validate: Boolean
+  }],
+  resolveDestinationFolder: async (args, cwd) => {
+    const distDir = argv.dist || 'examples/results';
+
+    return path.join(cwd, distDir, args.name.kebabCase);
   }
 };
