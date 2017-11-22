@@ -6,6 +6,9 @@ export type QuestionType = {
   type: string,
   name: string,
   message: string,
+  filter: Function,
+  validate: Function,
+  when: Function,
   default?: any
 };
 export type QuestionListType = Array<QuestionType>;

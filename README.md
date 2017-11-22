@@ -13,9 +13,6 @@ To install the latest stable version:
 
 ```sh
 npm i -g create-any-cli
-
-# E.g.
-create react-template --name="Foo Bar"
 ```
 
 ## CLI Features

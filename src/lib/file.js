@@ -8,11 +8,14 @@ const glob = require('glob');
 
 const _utils = {
   globAsync: promisify(glob)
-}
+};
 
 module.exports = {
   _utils: _utils,
-  globAsync: async (patterns: Array<string> | string, ...args: Array<mixed>) => {
+  globAsync: async (
+    patterns: Array<string> | string,
+    ...args: Array<mixed>
+  ) => {
     if (patterns instanceof Array) {
       const nestedPaths = await Promise.all(
         patterns.map(pattern => _utils.globAsync(pattern, ...args))

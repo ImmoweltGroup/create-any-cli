@@ -6,7 +6,9 @@ describe('file.globAsync()', () => {
   let globAsync;
 
   beforeEach(() => {
-    globAsync = jest.spyOn(file._utils, 'globAsync').mockImplementation(jest.fn());
+    globAsync = jest
+      .spyOn(file._utils, 'globAsync')
+      .mockImplementation(jest.fn());
   });
 
   afterEach(() => {
@@ -21,7 +23,7 @@ describe('file.globAsync()', () => {
     const expectedFiles = ['/usr/foo/package.json'];
     globAsync.mockReturnValue(expectedFiles);
 
-    const args = ['foo', 'bar']
+    const args = ['foo', 'bar'];
 
     const files = await file.globAsync(...args);
 
@@ -31,8 +33,9 @@ describe('file.globAsync()', () => {
   });
 
   it('should call the _utils.globAsync method multiple times if the first argument is an array of strings', async () => {
-
-    globAsync.mockReturnValueOnce(['/usr/foo/package.json']).mockReturnValueOnce(['/usr/bar/package.json']);
+    globAsync
+      .mockReturnValueOnce(['/usr/foo/package.json'])
+      .mockReturnValueOnce(['/usr/bar/package.json']);
 
     const files = await file.globAsync(['foo', 'baz'], 'bar');
 

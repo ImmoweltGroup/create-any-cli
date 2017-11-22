@@ -48,7 +48,7 @@ class DefaultCommand extends Command {
     this.log(
       'succeed',
       `Successfully created template "${template.config.id}" in`,
-      this.getCwd()
+      distDir
     );
   }
 
@@ -110,13 +110,34 @@ class DefaultCommand extends Command {
 
       this.spinner.stopAndPersist();
 
-      answers = await inquirer.prompt(
-        questions.map(question => {
+      const interactiveQuestions = questions.filter(question => {
+        const {
+          name,
+          filter = val => val,
+          validate = (val) => true
+        } = question;
+        const cliArg = filter(yargs.argv[name]);
+        const isValid = validate(cliArg);
+        const wasProvided = Boolean(cliArg && isValid);
+
+        if (wasProvided) {
+          answers[name] = cliArg;
+        }
+
+        return wasProvided === false;
+      });
+      const interactiveAnswers = await inquirer.prompt(
+        interactiveQuestions.map(question => {
           return Object.assign({}, question, {
             message: createMsg(id, question.message)
           });
         })
       );
+
+      answers = {
+        ...answers,
+        ...interactiveAnswers
+      };
     }
 
     return answers;
