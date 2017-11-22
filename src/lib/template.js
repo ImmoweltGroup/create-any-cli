@@ -100,15 +100,13 @@ module.exports = {
     // If the directory is empty, resolve all files based on the patterns and
     // process their dist paths and the contents.
     //
-    const nestedFilePaths = await Promise.all(
-      filePatterns.map(filePatternPath =>
-        file.globAsync(path.join(srcDir, filePatternPath), {
-          nodir: true,
-          symlinks: false
-        })
-      )
+    const pathPatterns = filePatterns.map(pattern =>
+      path.join(srcDir, pattern)
     );
-    const files = [].concat.apply([], nestedFilePaths);
+    const files = await file.globAsync(pathPatterns, {
+      nodir: true,
+      symlinks: false
+    });
 
     for (let filePath of files) {
       const relativeFilePath = this.template(
@@ -147,12 +145,10 @@ module.exports = {
     patterns: FilePatternListType,
     fileName?: string = 'create-config.js'
   ): Promise<TemplateConfigsByIdType> {
-    const nestedConfigPaths = await Promise.all(
-      patterns.map(pattern =>
-        file.globAsync(path.join(cwd, pattern, '**', fileName))
-      )
+    const pathPatterns = patterns.map(pattern =>
+      path.join(cwd, pattern, '**', fileName)
     );
-    const configPaths = [].concat.apply([], nestedConfigPaths);
+    const configPaths = await file.globAsync(pathPatterns);
 
     return configPaths.reduce(
       (templatesById: TemplateConfigsByIdType, configPath) => {

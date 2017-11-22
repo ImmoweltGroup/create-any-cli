@@ -70,7 +70,7 @@ describe('template.processTemplateAndCreate()', () => {
     });
 
     expect(file.globAsync.mock.calls.length).toBe(1);
-    expect(file.globAsync.mock.calls[0][0]).toBe('/usr/foo/src/*');
+    expect(file.globAsync.mock.calls[0][0]).toEqual(['/usr/foo/src/*']);
 
     expect(file.ensureDir.mock.calls.length).toBe(1);
     expect(file.ensureDir.mock.calls[0][0]).toBe('/usr/bar');

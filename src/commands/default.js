@@ -17,7 +17,12 @@ class DefaultCommand extends Command {
     const template = await this.resolveAndPromptForTemplate();
 
     if (!template) {
-      return;
+      return this.log(
+        'warn',
+        `No templates found in`,
+        this.getCwd(),
+        `Please configure the CLI to lookup templates using the ".createrc" file or a package.json["create-any-cli"] property.`
+      );
     }
 
     this.log('start', `Using template "${template.config.id}"...`);
@@ -59,12 +64,7 @@ class DefaultCommand extends Command {
     let templateId = yargs.argv._.join(' ').toLowerCase();
 
     if (templateKeys.length === 0) {
-      return this.log(
-        'warn',
-        `No templates found in`,
-        cwd,
-        `Please configure the CLI to lookup templates using the ".createrc" file or a package.json["create-any-cli"] property.`
-      );
+      return;
     }
 
     //
