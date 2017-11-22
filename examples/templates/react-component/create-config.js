@@ -2,7 +2,7 @@ const path = require('path');
 const {argv} = require('yargs');
 
 module.exports = {
-  id: 'react-template',
+  id: 'react-component',
   resolveFiles: async () => ['src/*'],
   resolveQuestions: async (cwd) => [{
     type: 'input',
