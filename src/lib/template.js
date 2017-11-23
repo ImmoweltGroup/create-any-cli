@@ -78,9 +78,17 @@ module.exports = {
     srcDir: string,
     distDir: string,
     args: TemplateArgsType,
+    ignorePatterns?: FilePatternListType,
     templateSettings?: Object | void
   }): Promise<void> {
-    const {distDir, srcDir, filePatterns, args, templateSettings = {}} = opts;
+    const {
+      distDir,
+      srcDir,
+      filePatterns,
+      args,
+      ignorePatterns = [],
+      templateSettings = {}
+    } = opts;
 
     //
     // Ensure that the directory exists and is empty.
@@ -105,7 +113,8 @@ module.exports = {
     );
     const files = await file.globAsync(pathPatterns, {
       nodir: true,
-      symlinks: false
+      symlinks: false,
+      ignore: ignorePatterns
     });
 
     for (let filePath of files) {
@@ -184,7 +193,17 @@ module.exports = {
 
         templatesById[config.id] = {
           cwd: configPath.replace(fileName, ''),
-          config
+          config: Object.assign(
+            {
+              resolveFiles: async (answers, cwd) => {
+                return ['*/**'];
+              },
+              createTemplateArgs: async (answers, cwd) => {
+                return this.createDecoratedTemplateArgs(answers);
+              }
+            },
+            config
+          )
         };
 
         return templatesById;

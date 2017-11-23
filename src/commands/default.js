@@ -30,16 +30,16 @@ class DefaultCommand extends Command {
     const {
       resolveDestinationFolder,
       resolveFiles,
-      createTemplateArgs = (answers, cwd) =>
-        api.createDecoratedTemplateArgs(answers)
+      createTemplateArgs
     } = template.config;
     const answers = await this.promptForTemplateAnswers(template);
     const filePatterns = await resolveFiles(answers, this.getCwd());
     const args = await createTemplateArgs(answers, this.getCwd());
-    const distDir = await resolveDestinationFolder(args, this.getCwd());
+    const distDir = await resolveDestinationFolder(answers, this.getCwd());
 
     await api.processTemplateAndCreate({
       srcDir: template.cwd,
+      ignorePatterns: ['create-config.js', '*/node_modules/*'],
       filePatterns,
       distDir,
       args
@@ -111,11 +111,7 @@ class DefaultCommand extends Command {
       this.spinner.stopAndPersist();
 
       const interactiveQuestions = questions.filter(question => {
-        const {
-          name,
-          filter = val => val,
-          validate = (val) => true
-        } = question;
+        const {name, filter = val => val, validate = val => true} = question;
         const cliArg = filter(yargs.argv[name]);
         const isValid = validate(cliArg);
         const wasProvided = Boolean(cliArg && isValid);

@@ -12,7 +12,7 @@ const {argv} = require('yargs');
  */
 module.exports = {
   id: 'react-component',
-  resolveFiles: async () => ['src/*'],
+  resolveFiles: async () => ['*/**'],
   resolveQuestions: async (cwd) => [{
     type: 'input',
     name: 'npmScope',
@@ -30,9 +30,9 @@ module.exports = {
     message: 'What is the name for the React Component?',
     validate: Boolean
   }],
-  resolveDestinationFolder: async (args, cwd) => {
+  resolveDestinationFolder: async (answers, cwd) => {
     const distDir = argv.dist || 'examples/results';
 
-    return path.join(cwd, distDir, args.name.kebabCase);
+    return path.join(cwd, distDir);
   }
 };

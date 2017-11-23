@@ -35,11 +35,20 @@ describe('template.trimFilePath()', () => {
 });
 
 describe('template.processTemplateAndCreate()', () => {
+  let warn;
+
+  beforeEach(() => {
+    warn = jest
+      .spyOn(console, 'warn')
+      .mockImplementation(jest.fn());
+  });
+
   afterEach(() => {
     file.readdirAsync.mockReset();
     file.writeFileAsync.mockReset();
     file.readFileAsync.mockReset();
     file.globAsync.mockReset();
+    warn.mockRestore();
   });
 
   it('should be a function', () => {
@@ -108,11 +117,20 @@ describe('template.processTemplateAndCreate()', () => {
 });
 
 describe('template.resolveTemplateConfigsById()', () => {
+  let warn;
+
+  beforeEach(() => {
+    warn = jest
+      .spyOn(console, 'warn')
+      .mockImplementation(jest.fn());
+  });
+
   afterEach(() => {
     file.readdirAsync.mockReset();
     file.writeFileAsync.mockReset();
     file.readFileAsync.mockReset();
     file.globAsync.mockReset();
+    warn.mockRestore();
   });
 
   it('should be a function', () => {
@@ -126,7 +144,11 @@ describe('template.resolveTemplateConfigsById()', () => {
       '/foo/yet-another-template/my-template-config.js',
       '/foo/duplicate-template/my-template-config.js'
     ]);
-    const fooConfig = {id: 'foo'};
+    const fooConfig = {
+      id: 'foo',
+      resolveFiles: jest.fn(),
+      createTemplateArgs: jest.fn()
+    };
     file.require
       .mockReturnValueOnce()
       .mockReturnValueOnce({})
@@ -141,6 +163,6 @@ describe('template.resolveTemplateConfigsById()', () => {
     expect(typeof configs).toBe('object');
     expect(typeof configs.foo).toBe('object');
     expect(configs.foo.cwd).toBe('/foo/yet-another-template/');
-    expect(configs.foo.config).toBe(fooConfig);
+    expect(configs.foo.config).toEqual(fooConfig);
   });
 });
