@@ -140,7 +140,8 @@ describe('new Command().getTemplatesById()', () => {
     const fooConfig = {
       id: 'foo',
       resolveFiles: jest.fn(),
-      createTemplateArgs: jest.fn()
+      createTemplateArgs: jest.fn(),
+      resolveDestinationFolder: jest.fn()
     };
 
     instance.cwd = '/foo';

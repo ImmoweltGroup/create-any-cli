@@ -7,23 +7,34 @@ const file = require('./file.js');
 const template = require('./template.js');
 const {ora, createMsg} = require('./logger.js');
 
-const configOpts = {
-  rawConfigFileName: '.createrc',
-  packageJsonProperty: 'create-any-cli',
-  defaults: {
-    templates: []
-  }
-};
-
 class Command {
   cwd: string = '';
   spinner = ora();
   config: CliConfigType;
+  configOpts = {
+    rawConfigFileName: '.createrc',
+    packageJsonProperty: 'create-any-cli',
+    defaults: {
+      templates: []
+    }
+  };
 
+  /**
+   * Bootstraps the CLI, needs to be invoked before accessing any properties of this class.
+   *
+   * @return {Promise} The Promise that resolves once everything is corretly setup.
+   */
   async bootstrap() {
     await Promise.all([this.resolveCwd(), this.resolveConfig()]);
   }
 
+  /**
+   * Logs a message to the users console.
+   *
+   * @param  {String}       severity The severity of the message to log.
+   * @param  {Array<mixed>} args     The arguments to log.
+   * @return {void}
+   */
   log(
     severity: 'start' | 'succeed' | 'fail' | 'warn' | 'info',
     ...args: Array<string>
@@ -31,17 +42,34 @@ class Command {
     this.spinner[severity](createMsg(...args));
   }
 
+  /**
+   * Resolves the working directory of the users configuration.
+   *
+   * @return {Promise} The Promise that resolves once the cwd got resolved.
+   */
   async resolveCwd() {
     const cwd =
-      (await file.findConfigUp.resolveConfigPath(configOpts)) || process.cwd();
+      (await file.findConfigUp.resolveConfigPath(this.configOpts)) ||
+      process.cwd();
 
     this.cwd = cwd.replace('package.json', '').replace('.createrc', '');
   }
 
+  /**
+   * Resolves the users configuration from disk.
+   *
+   * @return {Promise} The Promise that resolves once the configuration was resolved.
+   */
   async resolveConfig() {
-    this.config = await file.findConfigUp(configOpts);
+    this.config = await file.findConfigUp(this.configOpts);
   }
 
+  /**
+   * Resolves all `create-config.js` from the processes cwd , validates the exports and
+   * returns a hash map where the key is the ID of the template and the value the exports.
+   *
+   * @return {Promise} The Promise that resolves once all configurations where loaded.
+   */
   async getTemplatesById(): Promise<TemplateConfigsByIdType> {
     const fileName = 'create-config.js';
     const {config, cwd} = this;
@@ -100,6 +128,9 @@ class Command {
               },
               async createTemplateArgs(answers) {
                 return template.createDecoratedTemplateArgs(answers);
+              },
+              async resolveDestinationFolder() {
+                return process.cwd();
               }
             },
             config
