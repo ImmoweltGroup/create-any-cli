@@ -137,4 +137,4 @@ class DefaultCommand extends Command {
   }
 }
 
-module.exports = () => new DefaultCommand().exec();
+module.exports = DefaultCommand;
