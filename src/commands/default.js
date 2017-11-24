@@ -96,6 +96,7 @@ class DefaultCommand extends Command {
     template: TemplateConfigType
   ): Promise<AnswersType> {
     const {id, resolveQuestions} = template.config;
+    let interactiveAnswers = {};
     let answers = {};
 
     if (typeof resolveQuestions === 'function') {
@@ -103,7 +104,7 @@ class DefaultCommand extends Command {
 
       this.spinner.stopAndPersist();
 
-      const interactiveQuestions = questions.filter(question => {
+      const filteredQuestions = questions.filter(question => {
         const {name, filter = val => val, validate = val => true} = question;
         const cliArg = filter(yargs.argv[name]);
         const isValid = validate(cliArg);
@@ -111,25 +112,28 @@ class DefaultCommand extends Command {
 
         if (wasProvided) {
           answers[name] = cliArg;
+
+          this.log('succeed', id, question.message, String(cliArg));
+
+          return false;
         }
 
-        return wasProvided === false;
+        return true;
       });
-      const interactiveAnswers = await inquirer.prompt(
-        interactiveQuestions.map(question => {
+
+      interactiveAnswers = await inquirer.prompt(
+        filteredQuestions.map(question => {
           return Object.assign({}, question, {
             message: createMsg(id, question.message)
           });
         })
       );
-
-      answers = {
-        ...answers,
-        ...interactiveAnswers
-      };
     }
 
-    return answers;
+    return {
+      ...answers,
+      ...interactiveAnswers
+    };
   }
 }
 
