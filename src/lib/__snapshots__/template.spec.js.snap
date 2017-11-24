@@ -34,3 +34,219 @@ Object {
   },
 }
 `;
+
+exports[`template.processTemplateAndCreate() should execute the hook "onAfterProcessFile" function. 1`] = `
+Array [
+  Object {
+    "context": Object {
+      "someMockContext": true,
+    },
+    "data": Object {
+      "processed": "{\\"name\\": \\"My App\\"}",
+      "raw": "{\\"name\\": \\"{{=it.name}}\\"}",
+    },
+    "filePaths": Object {
+      "dist": "package.json",
+      "src": "package.json",
+    },
+  },
+]
+`;
+
+exports[`template.processTemplateAndCreate() should execute the hook "onAfterProcessFile" function. 2`] = `
+Array [
+  Object {
+    "context": Object {
+      "someMockContext": true,
+    },
+    "data": Object {
+      "processed": "The application name is: MY APP",
+      "raw": "The application name is: {{=it.name.toUpperCase()}}",
+    },
+    "filePaths": Object {
+      "dist": "My App/foo.txt",
+      "src": "{{=it.name}}/foo.txt",
+    },
+  },
+]
+`;
+
+exports[`template.processTemplateAndCreate() should execute the hook "onAfterReadFile" function. 1`] = `
+Array [
+  Object {
+    "context": Object {
+      "someMockContext": true,
+    },
+    "data": Object {
+      "processed": "",
+      "raw": "{\\"name\\": \\"{{=it.name}}\\"}",
+    },
+    "filePaths": Object {
+      "dist": "package.json",
+      "src": "package.json",
+    },
+  },
+]
+`;
+
+exports[`template.processTemplateAndCreate() should execute the hook "onAfterReadFile" function. 2`] = `
+Array [
+  Object {
+    "context": Object {
+      "someMockContext": true,
+    },
+    "data": Object {
+      "processed": "",
+      "raw": "The application name is: {{=it.name.toUpperCase()}}",
+    },
+    "filePaths": Object {
+      "dist": "My App/foo.txt",
+      "src": "{{=it.name}}/foo.txt",
+    },
+  },
+]
+`;
+
+exports[`template.processTemplateAndCreate() should execute the hook "onAfterWriteFile" function. 1`] = `
+Array [
+  Object {
+    "context": Object {
+      "someMockContext": true,
+    },
+    "data": Object {
+      "processed": "{\\"name\\": \\"My App\\"}",
+      "raw": "{\\"name\\": \\"{{=it.name}}\\"}",
+    },
+    "filePaths": Object {
+      "dist": "package.json",
+      "src": "package.json",
+    },
+  },
+]
+`;
+
+exports[`template.processTemplateAndCreate() should execute the hook "onAfterWriteFile" function. 2`] = `
+Array [
+  Object {
+    "context": Object {
+      "someMockContext": true,
+    },
+    "data": Object {
+      "processed": "The application name is: MY APP",
+      "raw": "The application name is: {{=it.name.toUpperCase()}}",
+    },
+    "filePaths": Object {
+      "dist": "My App/foo.txt",
+      "src": "{{=it.name}}/foo.txt",
+    },
+  },
+]
+`;
+
+exports[`template.processTemplateAndCreate() should execute the hook "onBeforeProcessFile" function. 1`] = `
+Array [
+  Object {
+    "context": Object {
+      "someMockContext": true,
+    },
+    "data": Object {
+      "processed": "",
+      "raw": "{\\"name\\": \\"{{=it.name}}\\"}",
+    },
+    "filePaths": Object {
+      "dist": "package.json",
+      "src": "package.json",
+    },
+  },
+]
+`;
+
+exports[`template.processTemplateAndCreate() should execute the hook "onBeforeProcessFile" function. 2`] = `
+Array [
+  Object {
+    "context": Object {
+      "someMockContext": true,
+    },
+    "data": Object {
+      "processed": "",
+      "raw": "The application name is: {{=it.name.toUpperCase()}}",
+    },
+    "filePaths": Object {
+      "dist": "My App/foo.txt",
+      "src": "{{=it.name}}/foo.txt",
+    },
+  },
+]
+`;
+
+exports[`template.processTemplateAndCreate() should execute the hook "onBeforeReadFile" function. 1`] = `
+Array [
+  Object {
+    "context": Object {
+      "someMockContext": true,
+    },
+    "data": Object {
+      "processed": "",
+      "raw": "",
+    },
+    "filePaths": Object {
+      "dist": "package.json",
+      "src": "package.json",
+    },
+  },
+]
+`;
+
+exports[`template.processTemplateAndCreate() should execute the hook "onBeforeReadFile" function. 2`] = `
+Array [
+  Object {
+    "context": Object {
+      "someMockContext": true,
+    },
+    "data": Object {
+      "processed": "",
+      "raw": "",
+    },
+    "filePaths": Object {
+      "dist": "My App/foo.txt",
+      "src": "{{=it.name}}/foo.txt",
+    },
+  },
+]
+`;
+
+exports[`template.processTemplateAndCreate() should execute the hook "onBeforeWriteFile" function. 1`] = `
+Array [
+  Object {
+    "context": Object {
+      "someMockContext": true,
+    },
+    "data": Object {
+      "processed": "{\\"name\\": \\"My App\\"}",
+      "raw": "{\\"name\\": \\"{{=it.name}}\\"}",
+    },
+    "filePaths": Object {
+      "dist": "package.json",
+      "src": "package.json",
+    },
+  },
+]
+`;
+
+exports[`template.processTemplateAndCreate() should execute the hook "onBeforeWriteFile" function. 2`] = `
+Array [
+  Object {
+    "context": Object {
+      "someMockContext": true,
+    },
+    "data": Object {
+      "processed": "The application name is: MY APP",
+      "raw": "The application name is: {{=it.name.toUpperCase()}}",
+    },
+    "filePaths": Object {
+      "dist": "My App/foo.txt",
+      "src": "{{=it.name}}/foo.txt",
+    },
+  },
+]
+`;

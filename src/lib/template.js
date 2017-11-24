@@ -3,13 +3,13 @@
 import type {
   DecoratedTemplateArgsType,
   FilePatternListType,
-  TemplateArgsType
+  TemplateArgsType,
+  TemplateHookArgsType
 } from './../types.js';
 
 const path = require('path');
 const dot = require('dot');
 const lodash = require('lodash');
-const {ora, createMsg} = require('./logger.js');
 const file = require('./file.js');
 
 module.exports = {
@@ -57,76 +57,130 @@ module.exports = {
   /**
    * Processes the given "templateDir" and it's files with the arguments and moves the result into the "distDir".
    *
-   * @param  {String}  templateDir The absolute path to the template dir to use.
-   * @param  {String}  distDir     The absolute path where the processed template should be moved into.
-   * @param  {Object}  args        The arguments for the template engine.
-   * @return {Promise}             The Promise that resolves once the template got processed.
+   * @param  {Object}  opts      Options for the templating process.
+   * @return {Promise}           The Promise that resolves once the template got processed.
    */
   async processTemplateAndCreate(opts: {
-    filePatterns: FilePatternListType,
-    srcDir: string,
-    distDir: string,
-    args: TemplateArgsType,
-    ignorePatterns?: FilePatternListType,
-    templateSettings?: Object | void
+    dist: string,
+    template: {
+      src: string,
+      args: TemplateArgsType,
+      filePatterns?: FilePatternListType,
+      ignore?: FilePatternListType,
+      settings?: Object | void
+    },
+    hooks?: {
+      onFile?: (opts: TemplateHookArgsType) => Promise<Object> | Object,
+      onInvalidDistDir?: (opts: TemplateHookArgsType) => Promise<*> | void,
+      onBeforeReadFile?: (opts: TemplateHookArgsType) => Promise<*> | void,
+      onAfterReadFile?: (opts: TemplateHookArgsType) => Promise<*> | void,
+      onBeforeProcessFile?: (opts: TemplateHookArgsType) => Promise<*> | void,
+      onAfterProcessFile?: (opts: TemplateHookArgsType) => Promise<*> | void,
+      onBeforeWriteFile?: (opts: TemplateHookArgsType) => Promise<*> | void,
+      onAfterWriteFile?: (opts: TemplateHookArgsType) => Promise<*> | void
+    }
   }): Promise<void> {
-    const {
-      distDir,
-      srcDir,
-      filePatterns,
-      args,
-      ignorePatterns = [],
-      templateSettings = {}
-    } = opts;
+    const emptyFn = () => null;
+    const options = lodash.merge(
+      {
+        template: {
+          filePatterns: ['*/**'],
+          ignore: [],
+          settings: undefined
+        },
+        hooks: {
+          onFile: () => ({}),
+          onInvalidDistDir: emptyFn,
+          onBeforeReadFile: emptyFn,
+          onAfterReadFile: emptyFn,
+          onBeforeProcessFile: emptyFn,
+          onAfterProcessFile: emptyFn,
+          onBeforeWriteFile: emptyFn,
+          onAfterWriteFile: emptyFn
+        }
+      },
+      opts
+    );
+    const {dist, hooks} = options;
+    const {src, filePatterns, args, ignore} = options.template;
 
     //
     // Ensure that the directory exists and is empty.
     //
-    await file.ensureDir(distDir);
+    await file.ensureDir(dist);
 
-    const existingDistFiles = await file.readdirAsync(distDir);
+    const existingDistFiles = await file.readdirAsync(dist);
 
     if (existingDistFiles.length) {
-      console.warn(
-        `Target folder "${distDir}" is not empty, skipping any further tasks...`
-      );
-      return;
+      return hooks.onInvalidDistDir(dist);
     }
 
     //
     // If the directory is empty, resolve all files based on the patterns and
     // process their dist paths and the contents.
     //
-    const pathPatterns = filePatterns.map(pattern =>
-      path.join(srcDir, pattern)
-    );
+    const pathPatterns = filePatterns.map(pattern => path.join(src, pattern));
     const files = await file.globAsync(pathPatterns, {
       nodir: true,
       symlinks: false,
-      ignore: ignorePatterns
+      ignore
     });
 
     for (let filePath of files) {
-      const relativeFilePath = this.template(
-        filePath.replace(srcDir, ''),
-        args,
-        templateSettings
-      );
-      const trimmedRelativeFilePath = file.trimFilePath(relativeFilePath);
-      const distFilePath = path.join(distDir, relativeFilePath);
+      const relativeFilePath = filePath
+        .replace(src + path.sep, '')
+        .replace(src, '');
+      const filePaths = {
+        src: relativeFilePath,
+        dist: this.template(relativeFilePath, args, options.template.options)
+      };
+      let hookArgs: TemplateHookArgsType = {
+        filePaths,
+        context: {},
+        data: {
+          raw: '',
+          processed: ''
+        }
+      };
 
-      const fileSpinner = ora(
-        createMsg('Reading file', trimmedRelativeFilePath)
-      ).start();
+      //
+      // Prepare
+      //
+      const context = await hooks.onFile(hookArgs);
+      hookArgs = lodash.merge({}, hookArgs, {
+        context
+      });
+
+      //
+      // Read file
+      //
+      await hooks.onBeforeReadFile(hookArgs);
       const contents = await file.readFileAsync(filePath, 'utf8');
+      hookArgs = lodash.merge({}, hookArgs, {
+        data: {
+          raw: contents
+        }
+      });
+      await hooks.onAfterReadFile(hookArgs);
 
-      fileSpinner.text = createMsg('Processing file', trimmedRelativeFilePath);
-      const data = this.template(contents, args, templateSettings);
+      //
+      // Process file
+      //
+      await hooks.onBeforeProcessFile(hookArgs);
+      const data = this.template(contents, args, options.template.options);
+      hookArgs = lodash.merge({}, hookArgs, {
+        data: {
+          processed: data
+        }
+      });
+      await hooks.onAfterProcessFile(hookArgs);
 
-      fileSpinner.text = createMsg('Writing file', trimmedRelativeFilePath);
-      await file.writeFileAsync(distFilePath, data);
-
-      fileSpinner.succeed();
+      //
+      // Write file
+      //
+      await hooks.onBeforeWriteFile(hookArgs);
+      await file.writeFileAsync(path.join(dist, filePaths.dist), data);
+      await hooks.onAfterWriteFile(hookArgs);
     }
   },
 

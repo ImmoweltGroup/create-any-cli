@@ -18,7 +18,7 @@ class DefaultCommand extends Command {
 
     if (!template) {
       return this.log(
-        'warn',
+        'fail',
         `No templates found in`,
         process.cwd(),
         `Please configure the CLI to lookup templates using the ".createrc" file or a package.json["create-any-cli"] property.`
@@ -27,22 +27,40 @@ class DefaultCommand extends Command {
 
     this.log('start', `Using template "${template.config.id}"...`);
 
-    const {
-      resolveDestinationFolder,
-      resolveFiles,
-      createTemplateArgs
-    } = template.config;
     const answers = await this.promptForTemplateAnswers(template);
-    const filePatterns = await resolveFiles(answers);
-    const args = await createTemplateArgs(answers);
-    const distDir = await resolveDestinationFolder(answers);
+    const filePatterns = await template.config.resolveFiles(answers);
+    const args = await template.config.createTemplateArgs(answers);
+    const distDir = await template.config.resolveDestinationFolder(answers);
 
     await api.processTemplateAndCreate({
-      srcDir: template.cwd,
-      ignorePatterns: ['create-config.js', '*/node_modules/*'],
-      filePatterns,
-      distDir,
-      args
+      dist: distDir,
+      template: {
+        src: template.cwd,
+        args,
+        filePatterns,
+        ignore: ['create-config.js', '*/node_modules/*']
+      },
+      hooks: {
+        onInvalidDistDir: () => {
+          console.warn(
+            `Target folder "${
+              distDir
+            }" is not empty, skipping any further operations...`
+          );
+        },
+        onBeforeReadFile: ({filePaths}) => {
+          this.log('start', 'Reading file', filePaths.dist);
+        },
+        onBeforeProcessFile: ({filePaths}) => {
+          this.log('start', 'Processing file', filePaths.dist);
+        },
+        onBeforeWriteFile: ({filePaths}) => {
+          this.log('start', 'Writing file', filePaths.dist);
+        },
+        onAfterWriteFile: ({filePaths}) => {
+          this.log('succeed', 'Writing file', filePaths.dist);
+        }
+      }
     });
 
     this.log(

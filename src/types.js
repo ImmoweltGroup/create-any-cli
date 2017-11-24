@@ -50,3 +50,15 @@ export type TemplateConfigsByIdType = {
 export type CliConfigType = {
   templates: FilePatternListType
 };
+
+export type TemplateHookArgsType = {
+  filePaths: {
+    src: string,
+    dist: string
+  },
+  context: Object,
+  data: {
+    raw: string,
+    processed: string
+  }
+};

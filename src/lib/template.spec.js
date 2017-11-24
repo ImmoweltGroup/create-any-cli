@@ -1,7 +1,6 @@
 // @flow
 
 jest.mock('./file.js');
-jest.mock('./logger.js');
 
 const file: any = require('./file.js');
 const template = require('./template.js');
@@ -24,7 +23,16 @@ describe('template.createDecoratedTemplateArgs()', () => {
 
 describe('template.processTemplateAndCreate()', () => {
   beforeEach(() => {
-    jest.spyOn(console, 'warn').mockImplementation(jest.fn());
+    file.readdirAsync.mockReturnValue([]);
+    file.globAsync.mockReturnValueOnce([
+      '/usr/foo/package.json',
+      '/usr/foo/{{=it.name}}/foo.txt'
+    ]);
+    file.readFileAsync
+      .mockReturnValueOnce('{"name": "{{=it.name}}"}')
+      .mockReturnValueOnce(
+        'The application name is: {{=it.name.toUpperCase()}}'
+      );
   });
 
   afterEach(() => {
@@ -38,26 +46,15 @@ describe('template.processTemplateAndCreate()', () => {
   });
 
   it('should iterate over all filePatterns of the given directory. process the contents with the given arguments and write the filePatterns to the "distDir" location.', async () => {
-    file.globAsync.mockReturnValueOnce([
-      '/usr/foo/package.json',
-      '/usr/foo/{{=it.name}}/foo.txt'
-    ]);
-    file.readdirAsync.mockReturnValue([]);
-    file.readFileAsync
-      .mockReturnValueOnce('{"name": "{{=it.name}}"}')
-      .mockReturnValueOnce(
-        'The application name is: {{=it.name.toUpperCase()}}'
-      );
-
-    const args = {
-      name: 'My App'
-    };
-
     await template.processTemplateAndCreate({
-      srcDir: '/usr/foo',
-      distDir: '/usr/bar',
-      filePatterns: ['src/*'],
-      args
+      dist: '/usr/bar',
+      template: {
+        src: '/usr/foo',
+        args: {
+          name: 'My App'
+        },
+        filePatterns: ['src/*']
+      }
     });
 
     expect(file.globAsync).toHaveBeenCalledTimes(1);
@@ -91,17 +88,159 @@ describe('template.processTemplateAndCreate()', () => {
     );
   });
 
-  it('should not read or write any files if the directory is not empty.', async () => {
+  it('should not read or write any files if the directory is not empty but execute the "onInvalidDistDir" hook.', async () => {
     file.readdirAsync.mockReturnValue(['foo']);
 
+    const onInvalidDistDir = jest.fn();
     await template.processTemplateAndCreate({
-      srcDir: '/usr/foo',
-      distDir: '/usr/bar',
-      filePatterns: ['src/*'],
-      args: {}
+      dist: '/usr/bar',
+      template: {
+        src: '/usr/foo',
+        args: {
+          name: 'My App'
+        },
+        filePatterns: ['src/*']
+      },
+      hooks: {
+        onInvalidDistDir
+      }
     });
 
+    expect(onInvalidDistDir).toHaveBeenCalledTimes(1);
+    expect(onInvalidDistDir).toHaveBeenCalledWith('/usr/bar');
     expect(file.readFileAsync).toHaveBeenCalledTimes(0);
     expect(file.writeFileAsync).toHaveBeenCalledTimes(0);
+  });
+
+  it('should execute the hook "onBeforeReadFile" function.', async () => {
+    const hooks = {
+      onFile: jest.fn(() => ({someMockContext: true})),
+      onBeforeReadFile: jest.fn()
+    };
+    await template.processTemplateAndCreate({
+      dist: '/usr/bar',
+      template: {
+        src: '/usr/foo',
+        args: {
+          name: 'My App'
+        },
+        filePatterns: ['src/*']
+      },
+      hooks
+    });
+
+    expect(hooks.onBeforeReadFile).toHaveBeenCalledTimes(2);
+    expect(hooks.onBeforeReadFile.mock.calls[0]).toMatchSnapshot();
+    expect(hooks.onBeforeReadFile.mock.calls[1]).toMatchSnapshot();
+  });
+
+  it('should execute the hook "onAfterReadFile" function.', async () => {
+    const hooks = {
+      onFile: jest.fn(() => ({someMockContext: true})),
+      onAfterReadFile: jest.fn()
+    };
+    await template.processTemplateAndCreate({
+      dist: '/usr/bar',
+      template: {
+        src: '/usr/foo',
+        args: {
+          name: 'My App'
+        },
+        filePatterns: ['src/*']
+      },
+      hooks
+    });
+
+    expect(hooks.onAfterReadFile).toHaveBeenCalledTimes(2);
+    expect(hooks.onAfterReadFile.mock.calls[0]).toMatchSnapshot();
+    expect(hooks.onAfterReadFile.mock.calls[1]).toMatchSnapshot();
+  });
+
+  it('should execute the hook "onBeforeProcessFile" function.', async () => {
+    const hooks = {
+      onFile: jest.fn(() => ({someMockContext: true})),
+      onBeforeProcessFile: jest.fn()
+    };
+    await template.processTemplateAndCreate({
+      dist: '/usr/bar',
+      template: {
+        src: '/usr/foo',
+        args: {
+          name: 'My App'
+        },
+        filePatterns: ['src/*']
+      },
+      hooks
+    });
+
+    expect(hooks.onBeforeProcessFile).toHaveBeenCalledTimes(2);
+    expect(hooks.onBeforeProcessFile.mock.calls[0]).toMatchSnapshot();
+    expect(hooks.onBeforeProcessFile.mock.calls[1]).toMatchSnapshot();
+  });
+
+  it('should execute the hook "onAfterProcessFile" function.', async () => {
+    const hooks = {
+      onFile: jest.fn(() => ({someMockContext: true})),
+      onAfterProcessFile: jest.fn()
+    };
+    await template.processTemplateAndCreate({
+      dist: '/usr/bar',
+      template: {
+        src: '/usr/foo',
+        args: {
+          name: 'My App'
+        },
+        filePatterns: ['src/*']
+      },
+      hooks
+    });
+
+    expect(hooks.onAfterProcessFile).toHaveBeenCalledTimes(2);
+    expect(hooks.onAfterProcessFile.mock.calls[0]).toMatchSnapshot();
+    expect(hooks.onAfterProcessFile.mock.calls[1]).toMatchSnapshot();
+  });
+
+  it('should execute the hook "onBeforeWriteFile" function.', async () => {
+    const hooks = {
+      onFile: jest.fn(() => ({someMockContext: true})),
+      onBeforeWriteFile: jest.fn()
+    };
+    await template.processTemplateAndCreate({
+      dist: '/usr/bar',
+      template: {
+        src: '/usr/foo',
+        args: {
+          name: 'My App'
+        },
+        filePatterns: ['src/*']
+      },
+      hooks
+    });
+
+    expect(hooks.onBeforeWriteFile).toHaveBeenCalledTimes(2);
+    expect(hooks.onBeforeWriteFile.mock.calls[0]).toMatchSnapshot();
+    expect(hooks.onBeforeWriteFile.mock.calls[1]).toMatchSnapshot();
+  });
+
+  it('should execute the hook "onAfterWriteFile" function.', async () => {
+    const hooks = {
+      onFile: jest.fn(() => ({someMockContext: true})),
+      onAfterWriteFile: jest.fn()
+    };
+    await template.processTemplateAndCreate({
+      dist: '/usr/bar',
+      template: {
+        src: '/usr/foo',
+        args: {
+          name: 'My App'
+        },
+        filePatterns: ['src/*']
+      },
+      hooks
+    });
+
+    expect(hooks.onAfterWriteFile).toHaveBeenCalledTimes(2);
+    expect(hooks.onAfterWriteFile.mock.calls[0]).toMatchSnapshot();
+    expect(hooks.onAfterWriteFile.mock.calls[1]).toMatchSnapshot();
   });
 });
