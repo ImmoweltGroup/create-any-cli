@@ -32,7 +32,6 @@ class DefaultCommand extends Command {
 
     this.log('start', `Using template "${template.config.id}"...`);
 
-    // ToDo: Allow Error objects to be returned from the template functions and pretty print error output in that case.
     const answers = await this.resolveTemplateAnswers(template);
     const filePatterns = await template.config.resolveFiles(answers);
     const args = await template.config.createTemplateArgs(answers);
@@ -195,11 +194,14 @@ class DefaultCommand extends Command {
   }
 
   onInvalidDistDir = (distDir: string) => {
-    console.warn(
-      `Target folder "${
-        distDir
-      }" is not empty, skipping any further operations...`
+    this.log(
+      'fail',
+      'Target folder',
+      distDir,
+      'is not empty, skipping any further operations...'
     );
+
+    process.exit(1);
   };
 
   onBeforeReadFile = async ({filePaths}: TemplateHookArgsType) => {

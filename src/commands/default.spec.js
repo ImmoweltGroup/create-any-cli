@@ -337,10 +337,12 @@ describe('new DefaultCommand() template feedback handlers', () => {
   let instance;
   let log;
   let opts;
+  let exit;
 
   beforeEach(() => {
     instance = new DefaultCommand();
     log = jest.spyOn(instance, 'log').mockImplementation(jest.fn());
+    exit = jest.spyOn(process, 'exit').mockImplementation(jest.fn());
     opts = {
       filePaths: {
         src: '/foo',
@@ -358,6 +360,21 @@ describe('new DefaultCommand() template feedback handlers', () => {
     // $FlowFixMe: Ignore errors since the jest type-def is out of date.
     jest.restoreAllMocks();
     jest.clearAllMocks();
+  });
+
+  describe('onInvalidDistDir()', () => {
+    it('should be a function', () => {
+      const instance = new DefaultCommand();
+
+      expect(typeof instance.onInvalidDistDir).toBe('function');
+    });
+
+    it('should call the instances log method and process.exit.', async () => {
+      await instance.onInvalidDistDir('some/folder');
+
+      expect(log).toHaveBeenCalledTimes(1);
+      expect(exit).toHaveBeenCalledWith(1);
+    });
   });
 
   describe('onBeforeReadFile()', () => {
