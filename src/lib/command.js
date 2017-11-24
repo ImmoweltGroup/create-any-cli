@@ -43,6 +43,15 @@ class Command {
   }
 
   /**
+   * Suspends the logging of the spinner.
+   *
+   * @return {void}
+   */
+  suspendLogging() {
+    this.spinner.stopAndPersist();
+  }
+
+  /**
    * Resolves the working directory of the users configuration.
    *
    * @return {Promise} The Promise that resolves once the cwd got resolved.

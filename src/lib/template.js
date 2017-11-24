@@ -71,7 +71,7 @@ module.exports = {
     },
     hooks?: {
       onFile?: (opts: TemplateHookArgsType) => Promise<Object> | Object,
-      onInvalidDistDir?: (opts: TemplateHookArgsType) => Promise<*> | void,
+      onInvalidDistDir?: (distDir: string) => Promise<*> | void,
       onBeforeReadFile?: (opts: TemplateHookArgsType) => Promise<*> | void,
       onAfterReadFile?: (opts: TemplateHookArgsType) => Promise<*> | void,
       onBeforeProcessFile?: (opts: TemplateHookArgsType) => Promise<*> | void,

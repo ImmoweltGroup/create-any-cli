@@ -1,6 +1,11 @@
 // @flow
 
-import type {AnswersType, TemplateConfigType} from './../types.js';
+import type {
+  AnswersType,
+  QuestionListType,
+  TemplateConfigType,
+  TemplateHookArgsType
+} from './../types.js';
 
 const yargs = require('yargs');
 const inquirer = require('inquirer');
@@ -9,25 +14,25 @@ const api = require('./../api.js');
 const Command = require('./../lib/command.js');
 
 class DefaultCommand extends Command {
+  /**
+   * Executes the workflow of this command.
+   *
+   * @return {Promise} The Promise that resolves once everything was executed.
+   */
   async exec(): Promise<void> {
     this.log('start', `Resolving templates from`, process.cwd());
 
     await this.bootstrap();
 
-    const template = await this.resolveAndPromptForTemplate();
+    const template = await this.resolveTemplateConfiguration();
 
     if (!template) {
-      return this.log(
-        'fail',
-        `No templates found in`,
-        process.cwd(),
-        `Please configure the CLI to lookup templates using the ".createrc" file or a package.json["create-any-cli"] property.`
-      );
+      return process.exit(1);
     }
 
     this.log('start', `Using template "${template.config.id}"...`);
 
-    const answers = await this.promptForTemplateAnswers(template);
+    const answers = await this.resolveTemplateAnswers(template);
     const filePatterns = await template.config.resolveFiles(answers);
     const args = await template.config.createTemplateArgs(answers);
     const distDir = await template.config.resolveDestinationFolder(answers);
@@ -41,25 +46,11 @@ class DefaultCommand extends Command {
         ignore: ['create-config.js', '*/node_modules/*']
       },
       hooks: {
-        onInvalidDistDir: () => {
-          console.warn(
-            `Target folder "${
-              distDir
-            }" is not empty, skipping any further operations...`
-          );
-        },
-        onBeforeReadFile: ({filePaths}) => {
-          this.log('start', 'Reading file', filePaths.dist);
-        },
-        onBeforeProcessFile: ({filePaths}) => {
-          this.log('start', 'Processing file', filePaths.dist);
-        },
-        onBeforeWriteFile: ({filePaths}) => {
-          this.log('start', 'Writing file', filePaths.dist);
-        },
-        onAfterWriteFile: ({filePaths}) => {
-          this.log('succeed', 'Writing file', filePaths.dist);
-        }
+        onInvalidDistDir: this.onInvalidDistDir,
+        onBeforeReadFile: this.onBeforeReadFile,
+        onBeforeProcessFile: this.onBeforeProcessFile,
+        onBeforeWriteFile: this.onBeforeWriteFile,
+        onAfterWriteFile: this.onAfterWriteFile
       }
     });
 
@@ -70,13 +61,28 @@ class DefaultCommand extends Command {
     );
   }
 
-  async resolveAndPromptForTemplate(): Promise<void | TemplateConfigType> {
+  /**
+   * Resolves the template to use, can be either provided via the CLI args,
+   * if none was provided an interactive prompt will be created with all
+   * available templates to choose from.
+   *
+   * @param  {Object}  [argv=yargs.argv] The optional process arguments provided, exposed only for testing.
+   * @return {Promise} The Promise that resolves with the templateId the user has choosen.
+   */
+  async resolveTemplateConfiguration(
+    argv = yargs.argv
+  ): Promise<void | TemplateConfigType> {
     const templatesById = await this.getTemplatesById();
     const templateKeys = Object.keys(templatesById);
-    let templateId = yargs.argv._.join(' ').toLowerCase();
+    let templateId = argv._.join(' ').toLowerCase();
 
     if (templateKeys.length === 0) {
-      return;
+      return this.log(
+        'fail',
+        `No templates found in`,
+        process.cwd(),
+        `Please configure the CLI to lookup templates using the ".createrc" file or a package.json["create-any-cli"] property.`
+      );
     }
 
     //
@@ -92,7 +98,7 @@ class DefaultCommand extends Command {
         ? 'Which template would you like to use?'
         : `No template found for id "${templateId}"`;
 
-      this.spinner.stopAndPersist();
+      this.suspendLogging();
 
       const answers = await inquirer.prompt([
         {
@@ -110,48 +116,105 @@ class DefaultCommand extends Command {
     return templatesById[templateId];
   }
 
-  async promptForTemplateAnswers(
+  /**
+   * Resolves the given templates questions, and afterwards tries to resolve the
+   * answers either via the CLI options or via an interactive prompt.
+   *
+   * @param  {Object}  template The template config / exports to use as a basis.
+   * @return {Promise}          The Promise that resolves with the answers of the given template.
+   */
+  async resolveTemplateAnswers(
     template: TemplateConfigType
   ): Promise<AnswersType> {
     const {id, resolveQuestions} = template.config;
-    let interactiveAnswers = {};
-    let answers = {};
 
-    if (typeof resolveQuestions === 'function') {
-      const questions = await resolveQuestions();
-
-      this.spinner.stopAndPersist();
-
-      const filteredQuestions = questions.filter(question => {
-        const {name, filter = val => val, validate = val => true} = question;
-        const cliArg = filter(yargs.argv[name]);
-        const isValid = validate(cliArg);
-        const wasProvided = Boolean(cliArg && isValid);
-
-        if (wasProvided) {
-          answers[name] = cliArg;
-
-          this.log('succeed', id, question.message, String(cliArg));
-
-          return false;
-        }
-
-        return true;
-      });
-
-      interactiveAnswers = await inquirer.prompt(
-        filteredQuestions.map(question => {
-          return Object.assign({}, question, {
-            message: createMsg(id, question.message)
-          });
-        })
-      );
+    if (!resolveQuestions) {
+      return {};
     }
 
+    const questions = await resolveQuestions();
+    const {
+      interactiveQuestions,
+      implicitAnswers,
+      implicitQuestions
+    } = await this.groupQuestionsByType(questions);
+
+    this.suspendLogging();
+
+    implicitQuestions.forEach(question => {
+      const {message, name} = question;
+
+      this.log('succeed', id, message, String(implicitAnswers[name]));
+    });
+
+    const interactiveAnswers = await inquirer.prompt(
+      interactiveQuestions.map(question => {
+        return Object.assign({}, question, {
+          message: createMsg(id, question.message)
+        });
+      })
+    );
+
     return {
-      ...answers,
+      ...implicitAnswers,
       ...interactiveAnswers
     };
+  }
+
+  /**
+   * Groups questions by their type (CLI / Interactive prompt). CLI answers have precedence.
+   *
+   * @param  {Array}   questions         The list of inquirer questions.
+   * @param  {Object}  [argv=yargs.argv] The optional process arguments provided, exposed only for testing.
+   * @return {Promise}                   The Promise that resolves with the grouped answers/questions.
+   */
+  async groupQuestionsByType(questions: QuestionListType, argv = yargs.argv) {
+    const interactiveQuestions = [];
+    const implicitQuestions = [];
+    const implicitAnswers: {[string]: mixed} = {};
+
+    questions.forEach(question => {
+      const {name, filter = val => val, validate = val => true} = question;
+      const value = filter(argv[name]);
+      const isValid = validate(value);
+
+      if (isValid && (value || value === true || value === 0)) {
+        implicitQuestions.push(question);
+        implicitAnswers[name] = value;
+      } else {
+        interactiveQuestions.push(question);
+      }
+    });
+
+    return {
+      implicitAnswers,
+      implicitQuestions,
+      interactiveQuestions
+    };
+  }
+
+  onInvalidDistDir(distDir: string) {
+    console.warn(
+      `Target folder "${
+        distDir
+      }" is not empty, skipping any further operations...`
+    );
+  }
+
+  async onBeforeReadFile({filePaths}: TemplateHookArgsType) {
+    this.log('start', 'Reading file', filePaths.dist);
+  }
+
+  async onBeforeProcessFile({filePaths}: TemplateHookArgsType) {
+    this.log('start', 'Processing file', filePaths.dist);
+  }
+
+  async onBeforeWriteFile({filePaths}: TemplateHookArgsType) {
+    this.log('start', 'Writing file', filePaths.dist);
+  }
+
+  async onAfterWriteFile({filePaths}: TemplateHookArgsType) {
+    this.log('succeed', 'Writing file', filePaths.dist);
   }
 }
 

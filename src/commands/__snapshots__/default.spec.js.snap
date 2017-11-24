@@ -1,0 +1,29 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`new DefaultCommand().exec() should call resolve the template answers and start the template workflow 1`] = `
+Array [
+  Object {
+    "dist": "/foo/baz",
+    "hooks": Object {
+      "onAfterWriteFile": [Function],
+      "onBeforeProcessFile": [Function],
+      "onBeforeReadFile": [Function],
+      "onBeforeWriteFile": [Function],
+      "onInvalidDistDir": [Function],
+    },
+    "template": Object {
+      "args": Object {
+        "someAnswer": true,
+      },
+      "filePatterns": Array [
+        "some/file/*/pattern",
+      ],
+      "ignore": Array [
+        "create-config.js",
+        "*/node_modules/*",
+      ],
+      "src": "/foo/bar",
+    },
+  },
+]
+`;

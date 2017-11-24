@@ -4,6 +4,7 @@ const oraInstance = {
   fail: jest.fn(() => oraInstance),
   warn: jest.fn(() => oraInstance),
   info: jest.fn(() => oraInstance),
+  stopAndPersist: jest.fn(() => oraInstance),
   text: '',
   color: ''
 };
