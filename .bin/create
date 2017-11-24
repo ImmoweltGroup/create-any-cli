@@ -8,6 +8,8 @@ const path = require('path');
 const pkg = require('./../package.json');
 const DefaultCommand = require('./../dist/commands/default.js');
 
+// ToDo: Make it possible to output help of templates and their configs.
+// Maybe ditch commander.js?
 cli
   .description('Effortlessly create new files or modules based upon templates in your application.')
   .usage('create [template-id] <...options>')

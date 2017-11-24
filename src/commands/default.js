@@ -32,6 +32,7 @@ class DefaultCommand extends Command {
 
     this.log('start', `Using template "${template.config.id}"...`);
 
+    // ToDo: Allow Error objects to be returned from the template functions and pretty print error output in that case.
     const answers = await this.resolveTemplateAnswers(template);
     const filePatterns = await template.config.resolveFiles(answers);
     const args = await template.config.createTemplateArgs(answers);
@@ -193,29 +194,29 @@ class DefaultCommand extends Command {
     };
   }
 
-  onInvalidDistDir(distDir: string) {
+  onInvalidDistDir = (distDir: string) => {
     console.warn(
       `Target folder "${
         distDir
       }" is not empty, skipping any further operations...`
     );
-  }
+  };
 
-  async onBeforeReadFile({filePaths}: TemplateHookArgsType) {
+  onBeforeReadFile = async ({filePaths}: TemplateHookArgsType) => {
     this.log('start', 'Reading file', filePaths.dist);
-  }
+  };
 
-  async onBeforeProcessFile({filePaths}: TemplateHookArgsType) {
+  onBeforeProcessFile = async ({filePaths}: TemplateHookArgsType) => {
     this.log('start', 'Processing file', filePaths.dist);
-  }
+  };
 
-  async onBeforeWriteFile({filePaths}: TemplateHookArgsType) {
+  onBeforeWriteFile = async ({filePaths}: TemplateHookArgsType) => {
     this.log('start', 'Writing file', filePaths.dist);
-  }
+  };
 
-  async onAfterWriteFile({filePaths}: TemplateHookArgsType) {
+  onAfterWriteFile = async ({filePaths}: TemplateHookArgsType) => {
     this.log('succeed', 'Writing file', filePaths.dist);
-  }
+  };
 }
 
 module.exports = DefaultCommand;
