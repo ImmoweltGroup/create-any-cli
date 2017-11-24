@@ -14,6 +14,12 @@ describe('Command()', () => {
 });
 
 describe('new Command().bootstrap()', () => {
+  let instance;
+
+  beforeEach(() => {
+    instance = new Command();
+  });
+
   afterEach(() => {
     // $FlowFixMe: Ignore errors since the jest type-def is out of date.
     jest.restoreAllMocks();
@@ -21,13 +27,10 @@ describe('new Command().bootstrap()', () => {
   });
 
   it('should be a function', () => {
-    const instance = new Command();
-
     expect(typeof instance.bootstrap).toBe('function');
   });
 
   it('should execute the "resolveCwd" and "resolveConfig" methods', async () => {
-    const instance = new Command();
     const resolveCwd = jest
       .spyOn(instance, 'resolveCwd')
       .mockImplementation(jest.fn());
@@ -43,6 +46,12 @@ describe('new Command().bootstrap()', () => {
 });
 
 describe('new Command().log()', () => {
+  let instance;
+
+  beforeEach(() => {
+    instance = new Command();
+  });
+
   afterEach(() => {
     // $FlowFixMe: Ignore errors since the jest type-def is out of date.
     jest.restoreAllMocks();
@@ -50,13 +59,10 @@ describe('new Command().log()', () => {
   });
 
   it('should be a function', () => {
-    const instance = new Command();
-
     expect(typeof instance.log).toBe('function');
   });
 
   it('should execute the given ora method with the provided args', async () => {
-    const instance = new Command();
     const start = jest.fn();
     instance.spinner = {start};
     logger.createMsg.mockReturnValue('foo');
@@ -69,6 +75,12 @@ describe('new Command().log()', () => {
 });
 
 describe('new Command().resolveConfig()', () => {
+  let instance;
+
+  beforeEach(() => {
+    instance = new Command();
+  });
+
   afterEach(() => {
     // $FlowFixMe: Ignore errors since the jest type-def is out of date.
     jest.restoreAllMocks();
@@ -76,14 +88,11 @@ describe('new Command().resolveConfig()', () => {
   });
 
   it('should be a function', () => {
-    const instance = new Command();
-
     expect(typeof instance.resolveConfig).toBe('function');
   });
 
   it('should call the file.findConfigUp() util and attach the return value to the "config" property of the class', async () => {
     file.findConfigUp.mockReturnValueOnce('foo');
-    const instance = new Command();
 
     await instance.resolveConfig();
 
@@ -93,6 +102,12 @@ describe('new Command().resolveConfig()', () => {
 });
 
 describe('new Command().resolveCwd()', () => {
+  let instance;
+
+  beforeEach(() => {
+    instance = new Command();
+  });
+
   afterEach(() => {
     // $FlowFixMe: Ignore errors since the jest type-def is out of date.
     jest.restoreAllMocks();
@@ -100,8 +115,6 @@ describe('new Command().resolveCwd()', () => {
   });
 
   it('should be a function', () => {
-    const instance = new Command();
-
     expect(typeof instance.resolveCwd).toBe('function');
   });
 
@@ -109,7 +122,6 @@ describe('new Command().resolveCwd()', () => {
     file.findConfigUp.resolveConfigPath.mockReturnValueOnce(
       '/foo/bar/package.json'
     );
-    const instance = new Command();
 
     await instance.resolveCwd();
 
@@ -119,7 +131,10 @@ describe('new Command().resolveCwd()', () => {
 });
 
 describe('new Command().getTemplatesById()', () => {
+  let instance;
+
   beforeEach(() => {
+    instance = new Command();
     jest.spyOn(console, 'warn').mockImplementation(jest.fn());
   });
 
@@ -130,13 +145,10 @@ describe('new Command().getTemplatesById()', () => {
   });
 
   it('should be a function', () => {
-    const instance = new Command();
-
     expect(typeof instance.getTemplatesById).toBe('function');
   });
 
   it('should resolve all template configs by their id', async () => {
-    const instance = new Command();
     const fooConfig = {
       id: 'foo',
       resolveFiles: jest.fn(),
@@ -165,5 +177,70 @@ describe('new Command().getTemplatesById()', () => {
     expect(typeof configs.foo).toBe('object');
     expect(configs.foo.cwd).toBe('/foo/yet-another-template/');
     expect(configs.foo.config).toEqual(fooConfig);
+  });
+});
+
+describe('new Command().wrapTemplateFunction()', () => {
+  let instance;
+  let exit;
+  let log;
+
+  beforeEach(() => {
+    instance = new Command();
+    exit = jest.spyOn(process, 'exit').mockImplementation(jest.fn());
+    log = jest.spyOn(instance, 'log').mockImplementation(jest.fn());
+  });
+
+  afterEach(() => {
+    // $FlowFixMe: Ignore errors since the jest type-def is out of date.
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
+  });
+
+  it('should be a function', () => {
+    expect(typeof instance.wrapTemplateFunction).toBe('function');
+  });
+
+  it('should fallback on returning a default if the given function is not defined', async () => {
+    // $FlowFixMe: Ignore errors since we test an edge case.
+    const fn = await instance.wrapTemplateFunction(
+      'my-template',
+      'resolveDestinationFolder'
+    );
+
+    expect(fn).toEqual(
+      instance.defaults.template.config.resolveDestinationFolder
+    );
+  });
+
+  it('should wrap the function and propagate all arguments to it', async () => {
+    const wrappedFn = jest.fn();
+    const fn = await instance.wrapTemplateFunction(
+      'my-template',
+      'resolveDestinationFolder',
+      wrappedFn
+    );
+
+    await fn('foo', 'bar');
+
+    expect(wrappedFn).toHaveBeenCalledWith('foo', 'bar');
+  });
+
+  it('should wrap the function with a pretty error log if it was defined', async () => {
+    const wrappedFn = jest.fn(() => new Error('Something bad happened'));
+    const fn = await instance.wrapTemplateFunction(
+      'my-template',
+      'resolveDestinationFolder',
+      wrappedFn
+    );
+
+    await fn('foo', 'bar');
+
+    expect(log).toHaveBeenCalledWith(
+      'fail',
+      'Error returned from my-template',
+      'resolveDestinationFolder()'
+    );
+    expect(exit).toHaveBeenCalledWith(1);
   });
 });

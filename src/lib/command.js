@@ -8,15 +8,32 @@ const template = require('./template.js');
 const {ora, createMsg} = require('./logger.js');
 
 class Command {
+  defaults = {
+    config: {
+      templates: []
+    },
+    template: {
+      config: {
+        async resolveFiles() {
+          return ['*/**'];
+        },
+        async createTemplateArgs(answers: any) {
+          return template.createDecoratedTemplateArgs(answers);
+        },
+        async resolveDestinationFolder() {
+          return process.cwd();
+        }
+      }
+    }
+  };
+
   cwd: string = '';
   spinner = ora();
   config: CliConfigType;
   configOpts = {
     rawConfigFileName: '.createrc',
     packageJsonProperty: 'create-any-cli',
-    defaults: {
-      templates: []
-    }
+    defaults: this.defaults.config
   };
 
   /**
@@ -130,26 +147,49 @@ class Command {
 
         templatesById[config.id] = {
           cwd: configPath.replace(fileName, ''),
-          config: Object.assign(
-            {
-              async resolveFiles(answers) {
-                return ['*/**'];
-              },
-              async createTemplateArgs(answers) {
-                return template.createDecoratedTemplateArgs(answers);
-              },
-              async resolveDestinationFolder() {
-                return process.cwd();
-              }
-            },
-            config
-          )
+          config
         };
+        [
+          'resolveQuestions',
+          'resolveFiles',
+          'createTemplateArgs',
+          'resolveDestinationFolder'
+        ].forEach(fnName => {
+          templatesById[config.id].config[fnName] = this.wrapTemplateFunction(
+            config.id,
+            fnName,
+            config[fnName]
+          );
+        });
 
         return templatesById;
       },
       {}
     );
+  }
+
+  wrapTemplateFunction(templateId: string, fnName: string, fn: Function) {
+    if (!fn) {
+      return this.defaults.template.config[fnName];
+    }
+
+    return async (...args: Array<mixed>) => {
+      let result;
+
+      try {
+        result = await fn(...args);
+      } catch (e) {
+        result = e;
+      }
+
+      if (result instanceof Error) {
+        this.log('fail', `Error returned from ${templateId}`, `${fnName}()`);
+        this.log('fail', result);
+        process.exit(1);
+      }
+
+      return result;
+    };
   }
 }
 
