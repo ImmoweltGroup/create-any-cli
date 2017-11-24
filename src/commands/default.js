@@ -10,9 +10,9 @@ const Command = require('./../lib/command.js');
 
 class DefaultCommand extends Command {
   async exec(): Promise<void> {
-    await super.exec();
+    this.log('start', `Resolving templates from`, process.cwd());
 
-    this.log('start', `Resolving templates from`, this.getCwd());
+    await this.bootstrap();
 
     const template = await this.resolveAndPromptForTemplate();
 
@@ -20,7 +20,7 @@ class DefaultCommand extends Command {
       return this.log(
         'warn',
         `No templates found in`,
-        this.getCwd(),
+        process.cwd(),
         `Please configure the CLI to lookup templates using the ".createrc" file or a package.json["create-any-cli"] property.`
       );
     }
@@ -33,9 +33,9 @@ class DefaultCommand extends Command {
       createTemplateArgs
     } = template.config;
     const answers = await this.promptForTemplateAnswers(template);
-    const filePatterns = await resolveFiles(answers, this.getCwd());
-    const args = await createTemplateArgs(answers, this.getCwd());
-    const distDir = await resolveDestinationFolder(answers, this.getCwd());
+    const filePatterns = await resolveFiles(answers);
+    const args = await createTemplateArgs(answers);
+    const distDir = await resolveDestinationFolder(answers);
 
     await api.processTemplateAndCreate({
       srcDir: template.cwd,
@@ -53,13 +53,7 @@ class DefaultCommand extends Command {
   }
 
   async resolveAndPromptForTemplate(): Promise<void | TemplateConfigType> {
-    const cwd = this.getCwd();
-    const cliConfig = this.getConfig();
-
-    const templatesById = await api.resolveTemplateConfigsById(
-      cwd,
-      cliConfig.templates
-    );
+    const templatesById = await this.getTemplatesById();
     const templateKeys = Object.keys(templatesById);
     let templateId = yargs.argv._.join(' ').toLowerCase();
 
@@ -101,12 +95,11 @@ class DefaultCommand extends Command {
   async promptForTemplateAnswers(
     template: TemplateConfigType
   ): Promise<AnswersType> {
-    const cwd = this.getCwd();
     const {id, resolveQuestions} = template.config;
     let answers = {};
 
     if (typeof resolveQuestions === 'function') {
-      const questions = await resolveQuestions(cwd);
+      const questions = await resolveQuestions();
 
       this.spinner.stopAndPersist();
 

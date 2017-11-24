@@ -3,8 +3,7 @@
 import type {
   DecoratedTemplateArgsType,
   FilePatternListType,
-  TemplateArgsType,
-  TemplateConfigsByIdType
+  TemplateArgsType
 } from './../types.js';
 
 const path = require('path');
@@ -53,16 +52,6 @@ module.exports = {
       },
       {}
     );
-  },
-
-  /**
-   * Removes starting slashes from filePaths
-   *
-   * @param  {String} filePath The filePath to trim.
-   * @return {String}          The trimmed filePath.
-   */
-  trimFilePath(filePath: string) {
-    return filePath.startsWith('/') ? filePath.replace('/', '') : filePath;
   },
 
   /**
@@ -123,7 +112,7 @@ module.exports = {
         args,
         templateSettings
       );
-      const trimmedRelativeFilePath = this.trimFilePath(relativeFilePath);
+      const trimmedRelativeFilePath = file.trimFilePath(relativeFilePath);
       const distFilePath = path.join(distDir, relativeFilePath);
 
       const fileSpinner = ora(
@@ -139,77 +128,6 @@ module.exports = {
 
       fileSpinner.succeed();
     }
-  },
-
-  /**
-   * Resolves all template configurations in a given directory.
-   *
-   * @param  {String}         cwd      The directory to use in which all templates should be resolved from.
-   * @param  {Array<String>}  patterns The list of patterns to use when resolving the templates.
-   * @param  {String}         fileName An optional filename to use when looking up the configurations.
-   * @return {Promise}                 The promise that resolves with the template configurations by their key/id.
-   */
-  async resolveTemplateConfigsById(
-    cwd: string,
-    patterns: FilePatternListType,
-    fileName?: string = 'create-config.js'
-  ): Promise<TemplateConfigsByIdType> {
-    const pathPatterns = patterns.map(pattern =>
-      path.join(cwd, pattern, '**', fileName)
-    );
-    const configPaths = await file.globAsync(pathPatterns);
-
-    return configPaths.reduce(
-      (templatesById: TemplateConfigsByIdType, configPath) => {
-        const config = file.require(configPath);
-
-        // ToDo: Enhance config validation.
-        if (typeof config !== 'object') {
-          console.warn(
-            `Unknown config type "${typeof config}" at "${
-              configPath
-            }" found, please export an object.`
-          );
-
-          return templatesById;
-        }
-
-        if (typeof config.id !== 'string') {
-          console.warn(
-            `No ID found in config exports of "${
-              configPath
-            }" found, please export an object containing an ID of type string.`
-          );
-
-          return templatesById;
-        }
-
-        //
-        // In case two templates with the same ID will be resolved the latter one will be ignored.
-        //
-        if (templatesById[config.id]) {
-          return templatesById;
-        }
-
-        templatesById[config.id] = {
-          cwd: configPath.replace(fileName, ''),
-          config: Object.assign(
-            {
-              resolveFiles: async (answers, cwd) => {
-                return ['*/**'];
-              },
-              createTemplateArgs: async (answers, cwd) => {
-                return this.createDecoratedTemplateArgs(answers);
-              }
-            },
-            config
-          )
-        };
-
-        return templatesById;
-      },
-      {}
-    );
   },
 
   /**

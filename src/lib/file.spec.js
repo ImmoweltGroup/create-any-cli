@@ -50,6 +50,18 @@ describe('file.globAsync()', () => {
   });
 });
 
+describe('file.trimFilePath()', () => {
+  it('should be a function', () => {
+    expect(typeof file.trimFilePath).toBe('function');
+  });
+
+  it('should remove starting slashes from the given string.', () => {
+    expect(file.trimFilePath('/foo/bar')).toBe('foo/bar');
+    expect(file.trimFilePath('foo/bar')).toBe('foo/bar');
+    expect(file.trimFilePath('foo/bar/')).toBe('foo/bar/');
+  });
+});
+
 describe('file.readFileAsync()', () => {
   it('should be a function', () => {
     expect(typeof file.readFileAsync).toBe('function');

@@ -13,9 +13,3 @@ describe('api.processTemplateAndCreate()', () => {
     expect(typeof api.processTemplateAndCreate).toBe('function');
   });
 });
-
-describe('api.resolveTemplateConfigsById()', () => {
-  it('should be a function', () => {
-    expect(typeof api.resolveTemplateConfigsById).toBe('function');
-  });
-});

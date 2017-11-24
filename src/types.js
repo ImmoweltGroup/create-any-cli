@@ -30,21 +30,14 @@ export type TemplateArgsType = DecoratedTemplateArgsType | Object;
 
 export type TemplateConfigExportType = {
   id: string,
-  resolveQuestions: (
-    cwd: string
-  ) => QuestionListType | Promise<QuestionListType>,
+  resolveQuestions: () => QuestionListType | Promise<QuestionListType>,
   resolveFiles: (
-    answers: AnswersType,
-    cwd: string
+    answers: AnswersType
   ) => FilePatternListType | Promise<FilePatternListType>,
   createTemplateArgs: (
-    answers: AnswersType,
-    cwd: string
+    answers: AnswersType
   ) => TemplateArgsType | Promise<TemplateArgsType>,
-  resolveDestinationFolder: (
-    answers: AnswersType,
-    cwd: string
-  ) => string | Promise<string>
+  resolveDestinationFolder: (answers: AnswersType) => string | Promise<string>
 };
 export type TemplateConfigType = {
   cwd: string,

@@ -22,18 +22,6 @@ describe('template.createDecoratedTemplateArgs()', () => {
   });
 });
 
-describe('template.trimFilePath()', () => {
-  it('should be a function', () => {
-    expect(typeof template.trimFilePath).toBe('function');
-  });
-
-  it('should remove starting slashes from the given string.', () => {
-    expect(template.trimFilePath('/foo/bar')).toBe('foo/bar');
-    expect(template.trimFilePath('foo/bar')).toBe('foo/bar');
-    expect(template.trimFilePath('foo/bar/')).toBe('foo/bar/');
-  });
-});
-
 describe('template.processTemplateAndCreate()', () => {
   beforeEach(() => {
     jest.spyOn(console, 'warn').mockImplementation(jest.fn());
@@ -115,50 +103,5 @@ describe('template.processTemplateAndCreate()', () => {
 
     expect(file.readFileAsync).toHaveBeenCalledTimes(0);
     expect(file.writeFileAsync).toHaveBeenCalledTimes(0);
-  });
-});
-
-describe('template.resolveTemplateConfigsById()', () => {
-  beforeEach(() => {
-    jest.spyOn(console, 'warn').mockImplementation(jest.fn());
-  });
-
-  afterEach(() => {
-    // $FlowFixMe: Ignore errors since the jest type-def is out of date.
-    jest.restoreAllMocks();
-    jest.clearAllMocks();
-  });
-
-  it('should be a function', () => {
-    expect(typeof template.resolveTemplateConfigsById).toBe('function');
-  });
-
-  it('should resolve all template configs by their id', async () => {
-    file.globAsync.mockReturnValue([
-      '/foo/some-template/my-template-config.js',
-      '/foo/another-template/my-template-config.js',
-      '/foo/yet-another-template/my-template-config.js',
-      '/foo/duplicate-template/my-template-config.js'
-    ]);
-    const fooConfig = {
-      id: 'foo',
-      resolveFiles: jest.fn(),
-      createTemplateArgs: jest.fn()
-    };
-    file.require
-      .mockReturnValueOnce()
-      .mockReturnValueOnce({})
-      .mockReturnValue(fooConfig);
-
-    const configs = await template.resolveTemplateConfigsById(
-      '/foo',
-      ['templates/*'],
-      'my-template-config.js'
-    );
-
-    expect(typeof configs).toBe('object');
-    expect(typeof configs.foo).toBe('object');
-    expect(configs.foo.cwd).toBe('/foo/yet-another-template/');
-    expect(configs.foo.config).toEqual(fooConfig);
   });
 });

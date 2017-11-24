@@ -12,6 +12,13 @@ const _utils = {
 
 module.exports = {
   _utils: _utils,
+
+  /**
+   * Executes the glob util, enhanced with a multi-glob functionality.
+   * @param  {Array<string> | string}  patterns The list or single pattern to glob.
+   * @param  {Array<mixed>}            args     Additional arguments to propagate to the glob util.
+   * @return {Promise}                          The Promise that resolves with a flattened array of paths that where found for the input.
+   */
   globAsync: async (
     patterns: Array<string> | string,
     ...args: Array<mixed>
@@ -25,6 +32,16 @@ module.exports = {
     }
 
     return _utils.globAsync(patterns, ...args);
+  },
+
+  /**
+   * Removes starting slashes from filePaths
+   *
+   * @param  {String} filePath The filePath to trim.
+   * @return {String}          The trimmed filePath.
+   */
+  trimFilePath(filePath: string) {
+    return filePath.startsWith('/') ? filePath.replace('/', '') : filePath;
   },
   readFileAsync: promisify(fs.readFile),
   readdirAsync: promisify(fs.readdir),
