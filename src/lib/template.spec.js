@@ -35,20 +35,14 @@ describe('template.trimFilePath()', () => {
 });
 
 describe('template.processTemplateAndCreate()', () => {
-  let warn;
-
   beforeEach(() => {
-    warn = jest
-      .spyOn(console, 'warn')
-      .mockImplementation(jest.fn());
+    jest.spyOn(console, 'warn').mockImplementation(jest.fn());
   });
 
   afterEach(() => {
-    file.readdirAsync.mockReset();
-    file.writeFileAsync.mockReset();
-    file.readFileAsync.mockReset();
-    file.globAsync.mockReset();
-    warn.mockRestore();
+    // $FlowFixMe: Ignore errors since the jest type-def is out of date.
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
   });
 
   it('should be a function', () => {
@@ -78,25 +72,33 @@ describe('template.processTemplateAndCreate()', () => {
       args
     });
 
-    expect(file.globAsync.mock.calls.length).toBe(1);
-    expect(file.globAsync.mock.calls[0][0]).toEqual(['/usr/foo/src/*']);
+    expect(file.globAsync).toHaveBeenCalledTimes(1);
+    expect(file.globAsync).toHaveBeenCalledWith(['/usr/foo/src/*'], {
+      ignore: [],
+      nodir: true,
+      symlinks: false
+    });
 
-    expect(file.ensureDir.mock.calls.length).toBe(1);
-    expect(file.ensureDir.mock.calls[0][0]).toBe('/usr/bar');
+    expect(file.ensureDir).toHaveBeenCalledTimes(1);
+    expect(file.ensureDir).toHaveBeenCalledWith('/usr/bar');
 
-    expect(file.readFileAsync.mock.calls.length).toBe(2);
-    expect(file.readFileAsync.mock.calls[0][0]).toBe('/usr/foo/package.json');
-    expect(file.readFileAsync.mock.calls[1][0]).toBe(
-      '/usr/foo/{{=it.name}}/foo.txt'
+    expect(file.readFileAsync).toHaveBeenCalledTimes(2);
+    expect(file.readFileAsync).toHaveBeenCalledWith(
+      '/usr/foo/package.json',
+      'utf8'
+    );
+    expect(file.readFileAsync).toHaveBeenCalledWith(
+      '/usr/foo/{{=it.name}}/foo.txt',
+      'utf8'
     );
 
-    expect(file.writeFileAsync.mock.calls.length).toBe(2);
-    expect(file.writeFileAsync.mock.calls[0][0]).toBe('/usr/bar/package.json');
-    expect(file.writeFileAsync.mock.calls[0][1]).toBe('{"name": "My App"}');
-    expect(file.writeFileAsync.mock.calls[1][0]).toBe(
-      '/usr/bar/My App/foo.txt'
+    expect(file.writeFileAsync).toHaveBeenCalledTimes(2);
+    expect(file.writeFileAsync).toHaveBeenCalledWith(
+      '/usr/bar/package.json',
+      '{"name": "My App"}'
     );
-    expect(file.writeFileAsync.mock.calls[1][1]).toBe(
+    expect(file.writeFileAsync).toHaveBeenCalledWith(
+      '/usr/bar/My App/foo.txt',
       'The application name is: MY APP'
     );
   });
@@ -111,26 +113,20 @@ describe('template.processTemplateAndCreate()', () => {
       args: {}
     });
 
-    expect(file.readFileAsync.mock.calls.length).toBe(0);
-    expect(file.writeFileAsync.mock.calls.length).toBe(0);
+    expect(file.readFileAsync).toHaveBeenCalledTimes(0);
+    expect(file.writeFileAsync).toHaveBeenCalledTimes(0);
   });
 });
 
 describe('template.resolveTemplateConfigsById()', () => {
-  let warn;
-
   beforeEach(() => {
-    warn = jest
-      .spyOn(console, 'warn')
-      .mockImplementation(jest.fn());
+    jest.spyOn(console, 'warn').mockImplementation(jest.fn());
   });
 
   afterEach(() => {
-    file.readdirAsync.mockReset();
-    file.writeFileAsync.mockReset();
-    file.readFileAsync.mockReset();
-    file.globAsync.mockReset();
-    warn.mockRestore();
+    // $FlowFixMe: Ignore errors since the jest type-def is out of date.
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
   });
 
   it('should be a function', () => {

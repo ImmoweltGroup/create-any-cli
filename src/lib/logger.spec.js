@@ -18,7 +18,9 @@ describe('logger.fatal()', () => {
   });
 
   afterEach(() => {
-    exit.mockRestore();
+    // $FlowFixMe: Ignore errors since the jest type-def is out of date.
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
   });
 
   it('should be a function', () => {
@@ -28,10 +30,10 @@ describe('logger.fatal()', () => {
   it('should log the error and exit the process with code "1"', () => {
     logger.fatal('foo');
 
-    expect(error.mock.calls.length).toBe(1);
-    expect(error.mock.calls[0][0]).toBe('foo');
-    expect(exit.mock.calls.length).toBe(1);
-    expect(exit.mock.calls[0][0]).toBe(1);
+    expect(error).toHaveBeenCalledTimes(1);
+    expect(error).toHaveBeenCalledWith('foo');
+    expect(exit).toHaveBeenCalledTimes(1);
+    expect(exit).toHaveBeenCalledWith(1);
   });
 });
 

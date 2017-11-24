@@ -12,7 +12,9 @@ describe('file.globAsync()', () => {
   });
 
   afterEach(() => {
-    globAsync.mockRestore();
+    // $FlowFixMe: Ignore errors since the jest type-def is out of date.
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
   });
 
   it('should be a function', () => {
@@ -27,8 +29,8 @@ describe('file.globAsync()', () => {
 
     const files = await file.globAsync(...args);
 
-    expect(globAsync.mock.calls.length).toBe(1);
-    expect(globAsync.mock.calls[0]).toEqual(args);
+    expect(globAsync).toHaveBeenCalledTimes(1);
+    expect(globAsync).toHaveBeenCalledWith(...args);
     expect(files).toEqual(expectedFiles);
   });
 
@@ -39,7 +41,7 @@ describe('file.globAsync()', () => {
 
     const files = await file.globAsync(['foo', 'baz'], 'bar');
 
-    expect(globAsync.mock.calls.length).toBe(2);
+    expect(globAsync).toHaveBeenCalledTimes(2);
     expect(globAsync.mock.calls[0][0]).toEqual('foo');
     expect(globAsync.mock.calls[0][1]).toEqual('bar');
     expect(globAsync.mock.calls[1][0]).toEqual('baz');

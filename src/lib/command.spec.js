@@ -14,6 +14,12 @@ describe('Command()', () => {
 });
 
 describe('new Command().exec()', () => {
+  afterEach(() => {
+    // $FlowFixMe: Ignore errors since the jest type-def is out of date.
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
+  });
+
   it('should be a function', () => {
     const instance = new Command();
 
@@ -31,11 +37,8 @@ describe('new Command().exec()', () => {
 
     await instance.exec();
 
-    expect(resolveCwd.mock.calls.length).toBe(1);
-    expect(resolveConfig.mock.calls.length).toBe(1);
-
-    resolveCwd.mockRestore();
-    resolveConfig.mockRestore();
+    expect(resolveCwd).toHaveBeenCalledTimes(1);
+    expect(resolveConfig).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -54,8 +57,8 @@ describe('new Command().log()', () => {
 
     await instance.log('start', 'foo');
 
-    expect(start.mock.calls.length).toBe(1);
-    expect(logger.createMsg.mock.calls.length).toBe(1);
+    expect(start).toHaveBeenCalledTimes(1);
+    expect(logger.createMsg).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -71,7 +74,7 @@ describe('new Command().resolveConfig()', () => {
 
     instance.resolveConfig();
 
-    expect(file.findConfigUp.mock.calls.length).toBe(1);
+    expect(file.findConfigUp).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -101,7 +104,7 @@ describe('new Command().resolveCwd()', () => {
 
     instance.resolveCwd();
 
-    expect(file.findConfigUp.resolveConfigPath.mock.calls.length).toBe(1);
+    expect(file.findConfigUp.resolveConfigPath).toHaveBeenCalledTimes(1);
   });
 });
 
