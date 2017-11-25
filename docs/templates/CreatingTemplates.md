@@ -21,7 +21,6 @@ module.exports = {
   }
 };
 ```
-_It is always a good idea to study [all options that are available](/docs/templates/Configuration.md) to max out the full potential of the CLI and it's API._
 
 Let's finalize everything by creating a `index.js` file that will be picked up by the `create` CLI during the template process.
 
@@ -43,4 +42,4 @@ Let's do the first one to see the CLI in all of it's glory, execute `create` in 
 create
 ```
 
-The CLI should now created a directory within `src` with the contents of your processed template. :rocket:
+The CLI should now created a directory within `src` with the contents of your processed template. Note that this example configuration does not reflect the necessary options, it is just an example that should get you familiar with the API and the possibilities. To max out the full potential of the CLI and it's API we recommend you to take a look at [all options that are available](/docs/templates/Configuration.md) and the [examples provided in this repository](/examples/templates).

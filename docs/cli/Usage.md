@@ -32,4 +32,4 @@ When executing the template help you should see all available CLI arguments list
 create my-template --foo="bar"
 ```
 
-And that's it, no special fuss but almost everything you can ask for! :rocket: [Let's continue to see how a template is made](/docs/template/CreatingTemplates.md)!
+And that's it, no special fuss but almost everything you can ask for! :rocket: [Let's continue to see how a template is made](/docs/templates/CreatingTemplates.md)!
