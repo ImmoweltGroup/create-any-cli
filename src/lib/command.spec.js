@@ -45,10 +45,12 @@ describe('new Command().resolveAndPrintHelp()', () => {
   let instance;
   let getRequestedTemplateId;
   let getTemplatesById;
+  let fail;
   let log;
 
   beforeEach(() => {
     instance = new Command({input: [], flags: {}});
+    fail = jest.spyOn(instance, 'fail').mockImplementation(jest.fn());
     log = jest.spyOn(console, 'log').mockImplementation(jest.fn());
     getRequestedTemplateId = jest
       .spyOn(instance, 'getRequestedTemplateId')
@@ -82,9 +84,8 @@ describe('new Command().resolveAndPrintHelp()', () => {
 
     await instance.resolveAndPrintHelp();
 
-    expect(log).toHaveBeenCalledTimes(1);
-    expect(log).toHaveBeenCalledWith(
-      'fail',
+    expect(fail).toHaveBeenCalledTimes(1);
+    expect(fail).toHaveBeenCalledWith(
       `No template found for id "foo-template". Available template ID's are "bar-template"`
     );
   });
@@ -174,6 +175,35 @@ describe('new Command().log()', () => {
 
     expect(start).toHaveBeenCalledTimes(1);
     expect(logger.createMsg).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('new Command().fail()', () => {
+  let instance;
+  let exit;
+  let log;
+
+  beforeEach(() => {
+    instance = new Command({input: [], flags: {}});
+    exit = jest.spyOn(process, 'exit').mockImplementation(jest.fn());
+    log = jest.spyOn(instance, 'log').mockImplementation(jest.fn());
+  });
+
+  afterEach(() => {
+    // $FlowFixMe: Ignore errors since the jest type-def is out of date.
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
+  });
+
+  it('should be a function', () => {
+    expect(typeof instance.fail).toBe('function');
+  });
+
+  it('should call the log method and propagate all arguments to it', () => {
+    instance.fail('foo', 'bar');
+
+    expect(log).toHaveBeenCalledWith('fail', 'foo', 'bar');
+    expect(exit).toHaveBeenCalledWith(1);
   });
 });
 
@@ -285,12 +315,12 @@ describe('new Command().getTemplatesById()', () => {
 
 describe('new Command().wrapTemplateFunction()', () => {
   let instance;
-  let exit;
+  let fail;
   let log;
 
   beforeEach(() => {
     instance = new Command({input: [], flags: {}});
-    exit = jest.spyOn(process, 'exit').mockImplementation(jest.fn());
+    fail = jest.spyOn(instance, 'fail').mockImplementation(jest.fn());
     log = jest.spyOn(instance, 'log').mockImplementation(jest.fn());
   });
 
@@ -342,6 +372,6 @@ describe('new Command().wrapTemplateFunction()', () => {
       'Error returned from my-template',
       'resolveDestinationFolder()'
     );
-    expect(exit).toHaveBeenCalledWith(1);
+    expect(fail).toHaveBeenCalledTimes(1);
   });
 });

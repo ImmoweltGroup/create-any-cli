@@ -105,8 +105,7 @@ Examples:
     const template = templatesById[templateId];
 
     if (!template) {
-      return this.log(
-        'fail',
+      return this.fail(
         `No template found for id "${
           templateId
         }". Available template ID's are ${Object.keys(templatesById)
@@ -165,6 +164,17 @@ Examples:
     ...args: Array<string>
   ): void {
     this.spinner[severity](createMsg(...args));
+  }
+
+  /**
+   * Log a failure to the users console and exit the process with an error code.
+   *
+   * @param  {Array<mixed>} args     The arguments to log.
+   * @return {void}
+   */
+  fail(...args: Array<string>): void {
+    this.log('fail', ...args);
+    process.exit(1);
   }
 
   /**
@@ -296,8 +306,7 @@ Examples:
 
       if (result instanceof Error) {
         this.log('fail', `Error returned from ${templateId}`, `${fnName}()`);
-        this.log('fail', result);
-        process.exit(1);
+        this.fail(result);
       }
 
       return result;

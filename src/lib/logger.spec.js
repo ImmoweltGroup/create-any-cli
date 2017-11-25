@@ -8,35 +8,6 @@ describe('logger.ora()', () => {
   });
 });
 
-describe('logger.fatal()', () => {
-  let exit;
-  let error;
-
-  beforeEach(() => {
-    exit = jest.spyOn(process, 'exit').mockImplementation(jest.fn());
-    error = jest.spyOn(console, 'error').mockImplementation(jest.fn());
-  });
-
-  afterEach(() => {
-    // $FlowFixMe: Ignore errors since the jest type-def is out of date.
-    jest.restoreAllMocks();
-    jest.clearAllMocks();
-  });
-
-  it('should be a function', () => {
-    expect(typeof logger.fatal).toBe('function');
-  });
-
-  it('should log the error and exit the process with code "1"', () => {
-    logger.fatal('foo');
-
-    expect(error).toHaveBeenCalledTimes(1);
-    expect(error).toHaveBeenCalledWith('foo');
-    expect(exit).toHaveBeenCalledTimes(1);
-    expect(exit).toHaveBeenCalledWith(1);
-  });
-});
-
 describe('logger.createMsg()', () => {
   it('should be a function', () => {
     expect(typeof logger.createMsg).toBe('function');

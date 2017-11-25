@@ -13,10 +13,5 @@ module.exports = {
     ]
       .filter(Boolean)
       .join(' ');
-  },
-  fatal(...args: Array<any>): void {
-    console.error(...args);
-
-    process.exit(1);
   }
 };

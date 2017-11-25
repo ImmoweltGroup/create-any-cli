@@ -26,7 +26,11 @@ class DefaultCommand extends Command {
     const template = await this.resolveTemplateConfiguration();
 
     if (!template) {
-      return process.exit(1);
+      return this.fail(
+        `No templates found in`,
+        process.cwd(),
+        `Please configure the CLI to lookup templates using the ".createrc" file or a package.json["create-any-cli"] property.`
+      );
     }
 
     this.log('start', `Using template "${template.config.id}"...`);
@@ -82,12 +86,7 @@ class DefaultCommand extends Command {
     let templateId = await this.getRequestedTemplateId();
 
     if (templateKeys.length === 0) {
-      return this.log(
-        'fail',
-        `No templates found in`,
-        process.cwd(),
-        `Please configure the CLI to lookup templates using the ".createrc" file or a package.json["create-any-cli"] property.`
-      );
+      return;
     }
 
     //
@@ -199,14 +198,11 @@ class DefaultCommand extends Command {
   }
 
   onInvalidDistDir = (distDir: string) => {
-    this.log(
-      'fail',
+    this.fail(
       'Target folder',
       distDir,
       'is not empty, skipping any further operations...'
     );
-
-    process.exit(1);
   };
 
   onBeforeReadFile = async ({filePaths}: TemplateHookArgsType) => {

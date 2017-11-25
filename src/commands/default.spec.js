@@ -24,7 +24,7 @@ describe('new DefaultCommand().exec()', () => {
   let bootstrap;
   let resolveTemplateConfiguration;
   let resolveTemplateAnswers;
-  let exit;
+  let fail;
   let template;
   let answers;
 
@@ -42,7 +42,7 @@ describe('new DefaultCommand().exec()', () => {
     answers = {
       someAnswer: true
     };
-    exit = jest.spyOn(process, 'exit').mockImplementation(jest.fn());
+    fail = jest.spyOn(instance, 'fail').mockImplementation(jest.fn());
     bootstrap = jest.spyOn(instance, 'bootstrap').mockImplementation(jest.fn());
     resolveTemplateConfiguration = jest
       .spyOn(instance, 'resolveTemplateConfiguration')
@@ -68,13 +68,13 @@ describe('new DefaultCommand().exec()', () => {
     expect(bootstrap).toHaveBeenCalledTimes(1);
   });
 
-  it('should call the process.exit method if no template was returned from the "resolveTemplateConfiguration" method', async () => {
+  it('should call the "fail" method if no template was returned from the "resolveTemplateConfiguration" method', async () => {
     resolveTemplateConfiguration.mockReturnValueOnce();
 
     await instance.exec();
 
     expect(resolveTemplateConfiguration).toHaveBeenCalledTimes(1);
-    expect(exit).toHaveBeenCalledTimes(1);
+    expect(fail).toHaveBeenCalledTimes(1);
   });
 
   it('should call resolve the template answers and start the template workflow', async () => {
@@ -331,12 +331,12 @@ describe('new DefaultCommand() template feedback handlers', () => {
   let instance;
   let log;
   let opts;
-  let exit;
+  let fail;
 
   beforeEach(() => {
     instance = new DefaultCommand({input: [], flags: {}});
     log = jest.spyOn(instance, 'log').mockImplementation(jest.fn());
-    exit = jest.spyOn(process, 'exit').mockImplementation(jest.fn());
+    fail = jest.spyOn(instance, 'fail').mockImplementation(jest.fn());
     opts = {
       filePaths: {
         src: '/foo',
@@ -363,11 +363,10 @@ describe('new DefaultCommand() template feedback handlers', () => {
       expect(typeof instance.onInvalidDistDir).toBe('function');
     });
 
-    it('should call the instances log method and process.exit.', async () => {
+    it('should call the instances "fail" method.', async () => {
       await instance.onInvalidDistDir('some/folder');
 
-      expect(log).toHaveBeenCalledTimes(1);
-      expect(exit).toHaveBeenCalledWith(1);
+      expect(fail).toHaveBeenCalledTimes(1);
     });
   });
 
