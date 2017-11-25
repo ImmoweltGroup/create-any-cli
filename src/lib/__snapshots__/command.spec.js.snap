@@ -6,9 +6,10 @@ Array [
 
 Usage:
   $ create [template-id] <...options>
+  $ create [template-id] --help
 
 Options:
-  --help, -h  Print this help
+  --help, -h  Print this help, or if a template-id was specified print the help of that template configuration.
 
 Examples:
   # Interactively choose from all available templates

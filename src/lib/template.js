@@ -20,7 +20,7 @@ module.exports = {
    * @return {Object}          The input object transformed into an object with variant properties of the raw value.
    */
   createDecoratedTemplateArgs(argsByKey: {
-    [string]: string
+    [string]: mixed
   }): DecoratedTemplateArgsType {
     const variants = [
       'snakeCase',
@@ -36,14 +36,14 @@ module.exports = {
         const raw = argsByKey[argKey];
         const transformedArgs: Object = {
           raw,
-          upperCamelCase: lodash.upperFirst(lodash.camelCase(raw))
+          upperCamelCase: lodash.upperFirst(lodash.camelCase(String(raw)))
         };
 
         variants.forEach(methodName => {
           // $FlowFixMe: suppressing this error since the access to the methods should not fail if reviewed properly.
           const method = lodash[methodName];
 
-          transformedArgs[methodName] = method(raw);
+          transformedArgs[methodName] = method(String(raw));
         });
 
         args[argKey] = transformedArgs;

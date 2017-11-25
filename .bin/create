@@ -2,9 +2,7 @@
 
 // @flow
 
-const chalk = require('chalk');
 const meow = require('meow');
-const path = require('path');
 const pkg = require('./../package.json');
 const DefaultCommand = require('./../dist/commands/default.js');
 

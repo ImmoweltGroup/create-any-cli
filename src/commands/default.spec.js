@@ -204,6 +204,8 @@ describe('new DefaultCommand().resolveTemplateAnswers()', () => {
       cwd: '/foo',
       config: {
         id: 'foo-template',
+        description: 'foo',
+        resolveQuestions: jest.fn(() => []),
         resolveFiles: jest.fn(),
         createTemplateArgs: jest.fn(),
         resolveDestinationFolder: jest.fn()
@@ -221,6 +223,7 @@ describe('new DefaultCommand().resolveTemplateAnswers()', () => {
       cwd: '/foo',
       config: {
         id: 'foo-template',
+        description: 'foo',
         resolveQuestions,
         resolveFiles: jest.fn(),
         createTemplateArgs: jest.fn(),
@@ -240,6 +243,7 @@ describe('new DefaultCommand().resolveTemplateAnswers()', () => {
       cwd: '/foo',
       config: {
         id: 'foo-template',
+        description: 'foo',
         resolveQuestions: jest.fn(() => []),
         resolveFiles: jest.fn(),
         createTemplateArgs: jest.fn(),

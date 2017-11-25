@@ -16,7 +16,7 @@ module.exports = {
   resolveQuestions: async () => [{
     type: 'input',
     name: 'npmScope',
-    message: 'What is the NPM organization scope for the React Component?',
+    message: 'What is the NPM organization scope for the React Component? (Optional)',
     filter: str => {
       if (str && str.length) {
         return `@${str.replace(/\W/g, '')}/`

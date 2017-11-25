@@ -41,9 +41,9 @@ export type TemplateArgsType = DecoratedTemplateArgsType | Object;
 //
 // Template configuration
 //
-export type ResolveQuestionsType = () =>
-  | QuestionListType
-  | Promise<QuestionListType>;
+export type ResolveQuestionsType = (
+  flags: CliFlagsType
+) => QuestionListType | Promise<QuestionListType>;
 export type ResolveFilesType = (
   answers: AnswersType,
   flags: CliFlagsType
@@ -59,8 +59,8 @@ export type ResolveDestinationFolderType = (
 
 export type TemplateConfigExportType = {
   id: string,
-  description?: string,
-  resolveQuestions?: ResolveQuestionsType,
+  description: string,
+  resolveQuestions: ResolveQuestionsType,
   resolveFiles: ResolveFilesType,
   createTemplateArgs: CreateTemplateArgsType,
   resolveDestinationFolder: ResolveDestinationFolderType

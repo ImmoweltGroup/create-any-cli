@@ -36,9 +36,10 @@ class Command {
 
 Usage:
   $ create [template-id] <...options>
+  $ create [template-id] --help
 
 Options:
-  --help, -h  Print this help
+  --help, -h  Print this help, or if a template-id was specified print the help of that template configuration.
 
 Examples:
   # Interactively choose from all available templates
@@ -55,6 +56,10 @@ Examples:
   };
   templates = {
     defaults: {
+      description: 'No description was exported for this template.',
+      async resolveQuestions() {
+        return [];
+      },
       async resolveFiles() {
         return ['*/**'];
       },
@@ -116,9 +121,9 @@ Examples:
 
     const {
       description = `No description for template "${templateId}" exported.`,
-      resolveQuestions = () => []
+      resolveQuestions
     } = template.config;
-    const questions = await resolveQuestions();
+    const questions = await resolveQuestions(this.cli.flags);
     const padding =
       questions.reduce((padding, question) => {
         const questionPadding = question.name.length;

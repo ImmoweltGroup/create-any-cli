@@ -131,12 +131,7 @@ class DefaultCommand extends Command {
     template: TemplateConfigType
   ): Promise<AnswersType> {
     const {id, resolveQuestions} = template.config;
-
-    if (!resolveQuestions) {
-      return {};
-    }
-
-    const questions = await resolveQuestions();
+    const questions = await resolveQuestions(this.cli.flags);
     const {
       interactiveQuestions,
       implicitAnswers,
