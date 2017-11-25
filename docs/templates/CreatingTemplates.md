@@ -30,13 +30,7 @@ Let's finalize everything by creating a `index.js` file that will be picked up b
 console.log('This string should automatically be replaced "{{=it.name.camelCase}}"');
 ```
 
-After saving the file you've got a lot of variants to use the `create` CLI, either
-
-* Completely interactively by executing the CLI without any arguments or flags (`create`)
-* Partially interactively by executing the CLI with a specific template-id (`create my-template`)
-* Or by executing the CLI with a specific template-id and arguments to avoid any prompts (`create my-template --name="My fancy created template"`)
-
-Let's do the first one to see the CLI in all of it's glory, execute `create` in the root of your project and answer all questions that are popping up.
+Let's save the file and execute `create` in the root of your project and answer all questions that are popping up.
 
 ```sh
 create
