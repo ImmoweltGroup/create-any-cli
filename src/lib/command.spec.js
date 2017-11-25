@@ -13,11 +13,114 @@ describe('Command()', () => {
   });
 });
 
+describe('new Command().shouldResolveAndPrintHelp()', () => {
+  let instance;
+
+  beforeEach(() => {
+    instance = new Command({input: [], flags: {}});
+  });
+
+  afterEach(() => {
+    // $FlowFixMe: Ignore errors since the jest type-def is out of date.
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
+  });
+
+  it('should be a function', () => {
+    expect(typeof instance.shouldResolveAndPrintHelp).toBe('function');
+  });
+
+  it('should return a boolean indicating if either the "-h" or "--help" flag was passed', async () => {
+    expect(instance.shouldResolveAndPrintHelp()).toBe(false);
+
+    instance.cli.flags = {h: true};
+    expect(instance.shouldResolveAndPrintHelp()).toBe(true);
+
+    instance.cli.flags = {help: true};
+    expect(instance.shouldResolveAndPrintHelp()).toBe(true);
+  });
+});
+
+describe('new Command().resolveAndPrintHelp()', () => {
+  let instance;
+  let getRequestedTemplateId;
+  let getTemplatesById;
+  let log;
+
+  beforeEach(() => {
+    instance = new Command({input: [], flags: {}});
+    log = jest.spyOn(console, 'log').mockImplementation(jest.fn());
+    getRequestedTemplateId = jest
+      .spyOn(instance, 'getRequestedTemplateId')
+      .mockImplementation(jest.fn(() => ''));
+    getTemplatesById = jest
+      .spyOn(instance, 'getTemplatesById')
+      .mockImplementation(jest.fn(() => ({})));
+  });
+
+  afterEach(() => {
+    // $FlowFixMe: Ignore errors since the jest type-def is out of date.
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
+  });
+
+  it('should be a function', () => {
+    expect(typeof instance.resolveAndPrintHelp).toBe('function');
+  });
+
+  it('should log the regular CLI help if no template id was given.', async () => {
+    await instance.resolveAndPrintHelp();
+
+    expect(log).toHaveBeenCalledTimes(1);
+    expect(log.mock.calls[0]).toMatchSnapshot();
+  });
+
+  it('should resolve the requested template id and log a failure if it is invalid.', async () => {
+    log = jest.spyOn(instance, 'log').mockImplementation(jest.fn());
+    getRequestedTemplateId.mockReturnValueOnce('foo-template');
+    getTemplatesById.mockReturnValueOnce({'bar-template': {}});
+
+    await instance.resolveAndPrintHelp();
+
+    expect(log).toHaveBeenCalledTimes(1);
+    expect(log).toHaveBeenCalledWith(
+      'fail',
+      `No template found for id "foo-template". Available template ID's are "bar-template"`
+    );
+  });
+
+  it('should print a custom template help if the requested template id is valid.', async () => {
+    getRequestedTemplateId.mockReturnValueOnce('foo-template');
+    getTemplatesById.mockReturnValueOnce({
+      'foo-template': {
+        config: {
+          description: 'My template description.',
+          resolveQuestions: () => [
+            {
+              name: 'some-option',
+              message: 'Some random option'
+            },
+            {
+              name: 'another-option',
+              message: 'Some other random option'
+            }
+          ]
+        }
+      }
+    });
+
+    await instance.resolveAndPrintHelp();
+
+    expect(log).toHaveBeenCalledTimes(1);
+    expect(log.mock.calls[0]).toMatchSnapshot();
+  });
+});
+
 describe('new Command().bootstrap()', () => {
   let instance;
 
   beforeEach(() => {
-    instance = new Command();
+    instance = new Command({input: [], flags: {}});
   });
 
   afterEach(() => {
@@ -49,7 +152,7 @@ describe('new Command().log()', () => {
   let instance;
 
   beforeEach(() => {
-    instance = new Command();
+    instance = new Command({input: [], flags: {}});
   });
 
   afterEach(() => {
@@ -78,7 +181,7 @@ describe('new Command().resolveConfig()', () => {
   let instance;
 
   beforeEach(() => {
-    instance = new Command();
+    instance = new Command({input: [], flags: {}});
   });
 
   afterEach(() => {
@@ -97,7 +200,7 @@ describe('new Command().resolveConfig()', () => {
     await instance.resolveConfig();
 
     expect(file.findConfigUp).toHaveBeenCalledTimes(1);
-    expect(instance.config).toBe('foo');
+    expect(instance.cli.config).toBe('foo');
   });
 });
 
@@ -105,7 +208,7 @@ describe('new Command().resolveCwd()', () => {
   let instance;
 
   beforeEach(() => {
-    instance = new Command();
+    instance = new Command({input: [], flags: {}});
   });
 
   afterEach(() => {
@@ -126,7 +229,7 @@ describe('new Command().resolveCwd()', () => {
     await instance.resolveCwd();
 
     expect(file.findConfigUp.resolveConfigPath).toHaveBeenCalledTimes(1);
-    expect(instance.cwd).toBe('/foo/bar/');
+    expect(instance.cli.cwd).toBe('/foo/bar/');
   });
 });
 
@@ -134,7 +237,7 @@ describe('new Command().getTemplatesById()', () => {
   let instance;
 
   beforeEach(() => {
-    instance = new Command();
+    instance = new Command({input: [], flags: {}});
     jest.spyOn(console, 'warn').mockImplementation(jest.fn());
   });
 
@@ -156,8 +259,8 @@ describe('new Command().getTemplatesById()', () => {
       resolveDestinationFolder: jest.fn()
     };
 
-    instance.cwd = '/foo';
-    instance.config = {
+    instance.cli.cwd = '/foo';
+    instance.cli.config = {
       templates: ['*']
     };
     file.require
@@ -186,7 +289,7 @@ describe('new Command().wrapTemplateFunction()', () => {
   let log;
 
   beforeEach(() => {
-    instance = new Command();
+    instance = new Command({input: [], flags: {}});
     exit = jest.spyOn(process, 'exit').mockImplementation(jest.fn());
     log = jest.spyOn(instance, 'log').mockImplementation(jest.fn());
   });
@@ -208,9 +311,7 @@ describe('new Command().wrapTemplateFunction()', () => {
       'resolveDestinationFolder'
     );
 
-    expect(fn).toEqual(
-      instance.defaults.template.config.resolveDestinationFolder
-    );
+    expect(fn).toEqual(instance.templates.defaults.resolveDestinationFolder);
   });
 
   it('should wrap the function and propagate all arguments to it', async () => {

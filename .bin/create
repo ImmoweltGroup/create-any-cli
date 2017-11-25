@@ -2,23 +2,26 @@
 
 // @flow
 
-const cli = require('commander');
 const chalk = require('chalk');
+const meow = require('meow');
 const path = require('path');
 const pkg = require('./../package.json');
 const DefaultCommand = require('./../dist/commands/default.js');
 
-// ToDo: Make it possible to output help of templates and their configs.
-// Maybe ditch commander.js?
-cli
-  .description('Effortlessly create new files or modules based upon templates in your application.')
-  .usage('create [template-id] <...options>')
-  .allowUnknownOption()
-  .version(pkg.version)
-  .parse(process.argv);
-
-new DefaultCommand().exec().catch(e => {
+const cli = meow({pkg, help: false});
+const create = new DefaultCommand({
+  input: cli.input,
+  flags: cli.flags
+});
+const catchErr = e => {
   console.error(e);
 
   process.exit(1);
-});
+};
+const shouldPrintHelp = create.shouldResolveAndPrintHelp();
+
+if (shouldPrintHelp) {
+  create.resolveAndPrintHelp().catch(catchErr);
+} else {
+  create.exec().catch(catchErr);
+}

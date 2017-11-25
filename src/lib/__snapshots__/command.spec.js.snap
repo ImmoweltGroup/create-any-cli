@@ -1,0 +1,42 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`new Command().resolveAndPrintHelp() should log the regular CLI help if no template id was given. 1`] = `
+Array [
+  "Effortlessly create new files or modules based upon templates in your application.
+
+Usage:
+  $ create [template-id] <...options>
+
+Options:
+  --help, -h  Print this help
+
+Examples:
+  # Interactively choose from all available templates
+  $ create
+
+  # Use a specific template
+  $ create my-template
+
+  # Use a specific template and print the help
+  $ create my-template --help
+
+  # Use a specific template, provide answers and skip interactive prompts
+  $ create my-template --name=\\"Foo Bar\\"",
+]
+`;
+
+exports[`new Command().resolveAndPrintHelp() should print a custom template help if the requested template id is valid. 1`] = `
+Array [
+  "My template description.
+
+Usage:
+  $ create foo-template <...options>
+
+Options:
+  --some-option     Some random option
+  --another-option  Some other random option
+
+Examples:
+  $ create foo-template <...options>",
+]
+`;

@@ -7,7 +7,6 @@ import type {
   TemplateHookArgsType
 } from './../types.js';
 
-const yargs = require('yargs');
 const inquirer = require('inquirer');
 const {createMsg} = require('./../lib/logger.js');
 const api = require('./../api.js');
@@ -33,9 +32,18 @@ class DefaultCommand extends Command {
     this.log('start', `Using template "${template.config.id}"...`);
 
     const answers = await this.resolveTemplateAnswers(template);
-    const filePatterns = await template.config.resolveFiles(answers);
-    const args = await template.config.createTemplateArgs(answers);
-    const distDir = await template.config.resolveDestinationFolder(answers);
+    const filePatterns = await template.config.resolveFiles(
+      answers,
+      this.cli.flags
+    );
+    const args = await template.config.createTemplateArgs(
+      answers,
+      this.cli.flags
+    );
+    const distDir = await template.config.resolveDestinationFolder(
+      answers,
+      this.cli.flags
+    );
 
     await api.processTemplateAndCreate({
       dist: distDir,
@@ -66,15 +74,12 @@ class DefaultCommand extends Command {
    * if none was provided an interactive prompt will be created with all
    * available templates to choose from.
    *
-   * @param  {Object}  [argv=yargs.argv] The optional process arguments provided, exposed only for testing.
    * @return {Promise} The Promise that resolves with the templateId the user has choosen.
    */
-  async resolveTemplateConfiguration(
-    argv = yargs.argv
-  ): Promise<void | TemplateConfigType> {
+  async resolveTemplateConfiguration(): Promise<void | TemplateConfigType> {
     const templatesById = await this.getTemplatesById();
     const templateKeys = Object.keys(templatesById);
-    let templateId = argv._.join(' ').toLowerCase();
+    let templateId = await this.getRequestedTemplateId();
 
     if (templateKeys.length === 0) {
       return this.log(
@@ -165,17 +170,17 @@ class DefaultCommand extends Command {
    * Groups questions by their type (CLI / Interactive prompt). CLI answers have precedence.
    *
    * @param  {Array}   questions         The list of inquirer questions.
-   * @param  {Object}  [argv=yargs.argv] The optional process arguments provided, exposed only for testing.
    * @return {Promise}                   The Promise that resolves with the grouped answers/questions.
    */
-  async groupQuestionsByType(questions: QuestionListType, argv = yargs.argv) {
+  async groupQuestionsByType(questions: QuestionListType) {
     const interactiveQuestions = [];
     const implicitQuestions = [];
     const implicitAnswers: {[string]: mixed} = {};
+    const {flags} = this.cli;
 
     questions.forEach(question => {
       const {name, filter = val => val, validate = val => true} = question;
-      const value = filter(argv[name]);
+      const value = filter(flags[name]);
       const isValid = validate(value);
 
       if (isValid && (value || value === true || value === 0)) {

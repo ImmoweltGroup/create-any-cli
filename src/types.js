@@ -17,6 +17,9 @@ export type AnswersType = {[string]: mixed};
 export type CliConfigType = {
   templates: FilePatternListType
 };
+export type CliFlagsType = {
+  [string]: mixed
+};
 
 //
 // Template arguments
@@ -42,17 +45,21 @@ export type ResolveQuestionsType = () =>
   | QuestionListType
   | Promise<QuestionListType>;
 export type ResolveFilesType = (
-  answers: AnswersType
+  answers: AnswersType,
+  flags: CliFlagsType
 ) => FilePatternListType | Promise<FilePatternListType>;
 export type CreateTemplateArgsType = (
-  answers: AnswersType
+  answers: AnswersType,
+  flags: CliFlagsType
 ) => TemplateArgsType | Promise<TemplateArgsType>;
 export type ResolveDestinationFolderType = (
-  answers: AnswersType
+  answers: AnswersType,
+  flags: CliFlagsType
 ) => string | Promise<string>;
 
 export type TemplateConfigExportType = {
   id: string,
+  description?: string,
   resolveQuestions?: ResolveQuestionsType,
   resolveFiles: ResolveFilesType,
   createTemplateArgs: CreateTemplateArgsType,

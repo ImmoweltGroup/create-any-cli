@@ -3,38 +3,146 @@
 import type {CliConfigType, TemplateConfigsByIdType} from './../types.js';
 
 const path = require('path');
+const lodash = require('lodash');
 const file = require('./file.js');
 const template = require('./template.js');
 const {ora, createMsg} = require('./logger.js');
 
 class Command {
-  defaults = {
+  cli: {
+    cwd: string,
+    help: string,
+    input: Array<string>,
+    flags: {
+      [string]: mixed
+    },
+    config: CliConfigType,
+    resolveConfig: Object
+  } = {
+    cwd: '',
+    input: [],
+    flags: {},
     config: {
       templates: []
     },
-    template: {
-      config: {
-        async resolveFiles() {
-          return ['*/**'];
-        },
-        async createTemplateArgs(answers: any) {
-          return template.createDecoratedTemplateArgs(answers);
-        },
-        async resolveDestinationFolder() {
-          return process.cwd();
-        }
+    resolveConfig: {
+      rawConfigFileName: '.createrc',
+      packageJsonProperty: 'create-any-cli',
+      defaults: {
+        templates: []
+      }
+    },
+    help: `Effortlessly create new files or modules based upon templates in your application.
+
+Usage:
+  $ create [template-id] <...options>
+
+Options:
+  --help, -h  Print this help
+
+Examples:
+  # Interactively choose from all available templates
+  $ create
+
+  # Use a specific template
+  $ create my-template
+
+  # Use a specific template and print the help
+  $ create my-template --help
+
+  # Use a specific template, provide answers and skip interactive prompts
+  $ create my-template --name="Foo Bar"`
+  };
+  templates = {
+    defaults: {
+      async resolveFiles() {
+        return ['*/**'];
+      },
+      async createTemplateArgs(answers: any) {
+        return template.createDecoratedTemplateArgs(answers);
+      },
+      async resolveDestinationFolder() {
+        return process.cwd();
       }
     }
   };
-
-  cwd: string = '';
   spinner = ora();
-  config: CliConfigType;
-  configOpts = {
-    rawConfigFileName: '.createrc',
-    packageJsonProperty: 'create-any-cli',
-    defaults: this.defaults.config
-  };
+
+  constructor(args: {input: Array<string>, flags: Object}) {
+    this.cli.input = args.input;
+    this.cli.flags = args.flags;
+  }
+
+  /**
+   * Indicates if the user requested help to be printed to the console.
+   *
+   * @return {Boolean} The boolean indicating if the user requested help to be printed to the console.
+   */
+  shouldResolveAndPrintHelp() {
+    const {h, help} = this.cli.flags;
+
+    return h === true || help === true;
+  }
+
+  /**
+   * Resolves the requested template ID
+   *
+   * - if none was given it will print the regular CLI help usage.
+   * - if one was given it will print a template help usage based on the configuration.
+   *
+   * @return {Promise} The Promise that resolves once the help was printed to the users console.
+   */
+  async resolveAndPrintHelp() {
+    const templateId = await this.getRequestedTemplateId();
+
+    if (templateId.length === 0) {
+      return console.log(this.cli.help);
+    }
+
+    await this.bootstrap();
+
+    const templatesById = await this.getTemplatesById();
+    const template = templatesById[templateId];
+
+    if (!template) {
+      return this.log(
+        'fail',
+        `No template found for id "${
+          templateId
+        }". Available template ID's are ${Object.keys(templatesById)
+          .map(str => `"${str}"`)
+          .join(' ')}`
+      );
+    }
+
+    const {
+      description = `No description for template "${templateId}" exported.`,
+      resolveQuestions = () => []
+    } = template.config;
+    const questions = await resolveQuestions();
+    const padding =
+      questions.reduce((padding, question) => {
+        const questionPadding = question.name.length;
+        return questionPadding > padding ? questionPadding : padding;
+      }, 0) + 1;
+
+    return console.log(`${description}
+
+Usage:
+  $ create ${templateId} <...options>
+
+Options:
+${questions
+      .map(question => {
+        const {name, message} = question;
+
+        return `  --${lodash.padEnd(name, padding)} ${message}`;
+      })
+      .join('\n')}
+
+Examples:
+  $ create ${templateId} <...options>`);
+  }
 
   /**
    * Bootstraps the CLI, needs to be invoked before accessing any properties of this class.
@@ -75,10 +183,10 @@ class Command {
    */
   async resolveCwd() {
     const cwd =
-      (await file.findConfigUp.resolveConfigPath(this.configOpts)) ||
+      (await file.findConfigUp.resolveConfigPath(this.cli.resolveConfig)) ||
       process.cwd();
 
-    this.cwd = cwd.replace('package.json', '').replace('.createrc', '');
+    this.cli.cwd = cwd.replace('package.json', '').replace('.createrc', '');
   }
 
   /**
@@ -87,7 +195,11 @@ class Command {
    * @return {Promise} The Promise that resolves once the configuration was resolved.
    */
   async resolveConfig() {
-    this.config = await file.findConfigUp(this.configOpts);
+    this.cli.config = await file.findConfigUp(this.cli.resolveConfig);
+  }
+
+  async getRequestedTemplateId() {
+    return this.cli.input.join(' ').toLowerCase();
   }
 
   /**
@@ -98,7 +210,7 @@ class Command {
    */
   async getTemplatesById(): Promise<TemplateConfigsByIdType> {
     const fileName = 'create-config.js';
-    const {config, cwd} = this;
+    const {config, cwd} = this.cli;
     const pathPatterns = config.templates.map((pattern: string) =>
       path.join(cwd, pattern, '**', fileName)
     );
@@ -170,7 +282,7 @@ class Command {
 
   wrapTemplateFunction(templateId: string, fnName: string, fn: Function) {
     if (!fn) {
-      return this.defaults.template.config[fnName];
+      return this.templates.defaults[fnName];
     }
 
     return async (...args: Array<mixed>) => {

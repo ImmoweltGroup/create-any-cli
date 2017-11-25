@@ -1,5 +1,4 @@
 const path = require('path');
-const {argv} = require('yargs');
 
 /**
  * Template for a simple react-component package.
@@ -12,6 +11,7 @@ const {argv} = require('yargs');
  */
 module.exports = {
   id: 'react-component',
+  description: 'A basic template example on how the create CLI can be used.',
   resolveFiles: async () => ['*/**'],
   resolveQuestions: async () => [{
     type: 'input',
@@ -30,8 +30,8 @@ module.exports = {
     message: 'What is the name for the React Component?',
     validate: Boolean
   }],
-  resolveDestinationFolder: async (answers) => {
-    const {dist = 'examples/results'} = argv;
+  resolveDestinationFolder: async (answers, flags) => {
+    const {dist = 'examples/results'} = flags;
 
     return path.join(process.cwd(), dist);
   }

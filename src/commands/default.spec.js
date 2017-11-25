@@ -29,7 +29,7 @@ describe('new DefaultCommand().exec()', () => {
   let answers;
 
   beforeEach(() => {
-    instance = new DefaultCommand();
+    instance = new DefaultCommand({input: [], flags: {}});
     template = {
       cwd: '/foo/bar',
       config: {
@@ -84,14 +84,21 @@ describe('new DefaultCommand().exec()', () => {
     expect(resolveTemplateAnswers).toHaveBeenCalledWith(template);
 
     expect(template.config.resolveFiles).toHaveBeenCalledTimes(1);
-    expect(template.config.resolveFiles).toHaveBeenCalledWith(answers);
+    expect(template.config.resolveFiles).toHaveBeenCalledWith(
+      answers,
+      instance.cli.flags
+    );
 
     expect(template.config.createTemplateArgs).toHaveBeenCalledTimes(1);
-    expect(template.config.createTemplateArgs).toHaveBeenCalledWith(answers);
+    expect(template.config.createTemplateArgs).toHaveBeenCalledWith(
+      answers,
+      instance.cli.flags
+    );
 
     expect(template.config.resolveDestinationFolder).toHaveBeenCalledTimes(1);
     expect(template.config.resolveDestinationFolder).toHaveBeenCalledWith(
-      answers
+      answers,
+      instance.cli.flags
     );
 
     expect(api.processTemplateAndCreate).toHaveBeenCalledTimes(1);
@@ -105,7 +112,7 @@ describe('new DefaultCommand().resolveTemplateConfiguration()', () => {
   let prompt;
 
   beforeEach(() => {
-    instance = new DefaultCommand();
+    instance = new DefaultCommand({input: [], flags: {}});
     prompt = jest
       .spyOn(inquirer, 'prompt')
       .mockImplementation(jest.fn(() => ({})));
@@ -137,11 +144,9 @@ describe('new DefaultCommand().resolveTemplateConfiguration()', () => {
     getTemplatesById.mockReturnValueOnce({
       foo: fooTemplate
     });
+    instance.cli.input = ['foo'];
 
-    const result = await instance.resolveTemplateConfiguration({
-      _: ['foo'],
-      $0: ''
-    });
+    const result = await instance.resolveTemplateConfiguration();
 
     expect(result).toBe(fooTemplate);
   });
@@ -158,10 +163,7 @@ describe('new DefaultCommand().resolveTemplateConfiguration()', () => {
       templateId: 'bar'
     });
 
-    const result = await instance.resolveTemplateConfiguration({
-      _: [],
-      $0: ''
-    });
+    const result = await instance.resolveTemplateConfiguration();
 
     expect(prompt).toHaveBeenCalledTimes(1);
     expect(result).toBe(barTemplate);
@@ -174,7 +176,7 @@ describe('new DefaultCommand().resolveTemplateAnswers()', () => {
   let prompt;
 
   beforeEach(() => {
-    instance = new DefaultCommand();
+    instance = new DefaultCommand({input: [], flags: {}});
     prompt = jest.spyOn(inquirer, 'prompt').mockImplementation(jest.fn());
     groupQuestionsByType = jest
       .spyOn(instance, 'groupQuestionsByType')
@@ -262,7 +264,7 @@ describe('new DefaultCommand().groupQuestionsByType()', () => {
   let instance;
 
   beforeEach(() => {
-    instance = new DefaultCommand();
+    instance = new DefaultCommand({input: [], flags: {}});
   });
 
   afterEach(() => {
@@ -272,31 +274,27 @@ describe('new DefaultCommand().groupQuestionsByType()', () => {
   });
 
   it('should be a function', () => {
-    const instance = new DefaultCommand();
+    const instance = new DefaultCommand({input: [], flags: {}});
 
     expect(typeof instance.groupQuestionsByType).toBe('function');
   });
 
   it('should group the given questions depending on the factor if the value was provided in the processes arguments.', async () => {
-    const results = await instance.groupQuestionsByType(
-      [
-        {
-          name: 'myInteractiveQuestion',
-          type: 'input',
-          message: 'You should really type this'
-        },
-        {
-          name: 'myImplicitQuestion',
-          type: 'input',
-          message: 'You should really type this'
-        }
-      ],
+    instance.cli.flags = {
+      myImplicitQuestion: 'foo'
+    };
+    const results = await instance.groupQuestionsByType([
       {
-        _: [],
-        $0: '',
-        myImplicitQuestion: 'foo'
+        name: 'myInteractiveQuestion',
+        type: 'input',
+        message: 'You should really type this'
+      },
+      {
+        name: 'myImplicitQuestion',
+        type: 'input',
+        message: 'You should really type this'
       }
-    );
+    ]);
 
     expect(typeof results).toBe('object');
     expect(results.interactiveQuestions).toHaveLength(1);
@@ -308,22 +306,18 @@ describe('new DefaultCommand().groupQuestionsByType()', () => {
     const filter = jest.fn(value => value + 'bar');
     const validate = jest.fn(value => value);
 
-    await instance.groupQuestionsByType(
-      [
-        {
-          name: 'myImplicitQuestion',
-          type: 'input',
-          message: 'You should really type this',
-          validate,
-          filter
-        }
-      ],
+    instance.cli.flags = {
+      myImplicitQuestion: 'foo'
+    };
+    await instance.groupQuestionsByType([
       {
-        _: [],
-        $0: '',
-        myImplicitQuestion: 'foo'
+        name: 'myImplicitQuestion',
+        type: 'input',
+        message: 'You should really type this',
+        validate,
+        filter
       }
-    );
+    ]);
 
     expect(filter).toHaveBeenCalledTimes(1);
     expect(filter).toHaveBeenCalledWith('foo');
@@ -340,7 +334,7 @@ describe('new DefaultCommand() template feedback handlers', () => {
   let exit;
 
   beforeEach(() => {
-    instance = new DefaultCommand();
+    instance = new DefaultCommand({input: [], flags: {}});
     log = jest.spyOn(instance, 'log').mockImplementation(jest.fn());
     exit = jest.spyOn(process, 'exit').mockImplementation(jest.fn());
     opts = {
@@ -364,7 +358,7 @@ describe('new DefaultCommand() template feedback handlers', () => {
 
   describe('onInvalidDistDir()', () => {
     it('should be a function', () => {
-      const instance = new DefaultCommand();
+      const instance = new DefaultCommand({input: [], flags: {}});
 
       expect(typeof instance.onInvalidDistDir).toBe('function');
     });
@@ -379,7 +373,7 @@ describe('new DefaultCommand() template feedback handlers', () => {
 
   describe('onBeforeReadFile()', () => {
     it('should be a function', () => {
-      const instance = new DefaultCommand();
+      const instance = new DefaultCommand({input: [], flags: {}});
 
       expect(typeof instance.onBeforeReadFile).toBe('function');
     });
@@ -393,7 +387,7 @@ describe('new DefaultCommand() template feedback handlers', () => {
 
   describe('onBeforeProcessFile()', () => {
     it('should be a function', () => {
-      const instance = new DefaultCommand();
+      const instance = new DefaultCommand({input: [], flags: {}});
 
       expect(typeof instance.onBeforeProcessFile).toBe('function');
     });
@@ -407,7 +401,7 @@ describe('new DefaultCommand() template feedback handlers', () => {
 
   describe('onBeforeWriteFile()', () => {
     it('should be a function', () => {
-      const instance = new DefaultCommand();
+      const instance = new DefaultCommand({input: [], flags: {}});
 
       expect(typeof instance.onBeforeWriteFile).toBe('function');
     });
@@ -421,7 +415,7 @@ describe('new DefaultCommand() template feedback handlers', () => {
 
   describe('onAfterWriteFile()', () => {
     it('should be a function', () => {
-      const instance = new DefaultCommand();
+      const instance = new DefaultCommand({input: [], flags: {}});
 
       expect(typeof instance.onAfterWriteFile).toBe('function');
     });
