@@ -54,6 +54,8 @@
     "@immowelt/eslint-config-immowelt-react": "^2.0.0",
     "@immowelt/jest-preset-node": "^1.0.0",
     "@immowelt/styleguide-javascript": "^1.0.6",
+    "@inkdpixels/commit-analyzer": "^1.0.0",
+    "@inkdpixels/release-notes-generator": "^1.0.0",
     "babel-cli": "^6.26.0",
     "eslint": "^4.4.1",
     "flow-bin": "^0.59.0",
@@ -71,6 +73,10 @@
     "modulePathIgnorePatterns": [
       "<rootDir>/dist/"
     ]
+  },
+  "release": {
+    "analyzeCommits": "@inkdpixels/commit-analyzer",
+    "generateNotes": "@inkdpixels/release-notes-generator"
   },
   "repository": {
     "type": "git",

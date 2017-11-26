@@ -28,8 +28,13 @@ npm i -g create-any-cli
 
 ## Documentation
 * [Introduction](/docs/introduction/README.md)
+  * [Motivation](/docs/introduction/Motivation.md)
 * [CLI](/docs/cli/README.md)
+  * [Configuration](/docs/cli/Configuration.md)
+  * [Usage](/docs/cli/Usage.md)
 * [Templates](/docs/templates/README.md)
+  * [Template Creation](/docs/templates/CreatingTemplates.md)
+  * [Template Configuration](/docs/templates/Configuration.md)
 * [API Reference](/docs/api/README.md)
 * [FAQ](/docs/FAQ.md)
 
