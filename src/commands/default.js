@@ -66,6 +66,10 @@ class DefaultCommand extends Command {
       }
     });
 
+    if (template.config.onFinish) {
+      await template.config.onFinish(answers, args, this.cli.flags);
+    }
+
     this.log(
       'succeed',
       `Successfully created template "${template.config.id}" in`,

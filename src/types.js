@@ -57,6 +57,11 @@ export type ResolveDestinationFolderType = (
   args: TemplateArgsType,
   flags: CliFlagsType
 ) => string | Promise<string>;
+export type OnFinishType = (
+  answers: AnswersType,
+  args: TemplateArgsType,
+  flags: CliFlagsType
+) => void | Promise<void>;
 
 export type TemplateConfigExportType = {
   id: string,
@@ -64,7 +69,8 @@ export type TemplateConfigExportType = {
   resolveQuestions: ResolveQuestionsType,
   resolveFiles: ResolveFilesType,
   createTemplateArgs: CreateTemplateArgsType,
-  resolveDestinationFolder: ResolveDestinationFolderType
+  resolveDestinationFolder: ResolveDestinationFolderType,
+  onFinish?: OnFinishType
 };
 export type TemplateConfigType = {
   cwd: string,

@@ -42,3 +42,6 @@ A function that will be invoked with the answers of the resolved questions and C
 A function that will be invoked with the answers of the resolved questions, the template arguments and the CLI flags. It should return the full path pointing to the folder in which all files should be moved into after processing their contents. Falls back to a function that returns the `process.cwd()`.
 
 Note that if the path/folder does not exist it will be created.
+
+#### `opts.onFinish: (answers: Object, args: Object, flags: Object) => void` (Optional)
+A function that will be invoked after the template was processed and moved into place.

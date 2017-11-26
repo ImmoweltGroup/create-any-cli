@@ -105,6 +105,23 @@ describe('new DefaultCommand().exec()', () => {
     expect(api.processTemplateAndCreate).toHaveBeenCalledTimes(1);
     expect(api.processTemplateAndCreate.mock.calls[0]).toMatchSnapshot();
   });
+
+  it('should call the template onFinish method if it was provided', async () => {
+    const onFinish = jest.fn();
+
+    resolveTemplateConfiguration.mockReturnValueOnce({
+      ...template,
+      config: {
+        ...template.config,
+        onFinish
+      }
+    });
+
+    await instance.exec();
+
+    expect(onFinish).toHaveBeenCalledTimes(1);
+    expect(onFinish).toHaveBeenCalledWith(answers, answers, instance.cli.flags);
+  });
 });
 
 describe('new DefaultCommand().resolveTemplateConfiguration()', () => {
