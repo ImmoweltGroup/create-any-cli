@@ -90,7 +90,6 @@ module.exports = {
         },
         hooks: {
           onFile: () => ({}),
-          onInvalidDistDir: emptyFn,
           onBeforeReadFile: emptyFn,
           onAfterReadFile: emptyFn,
           onBeforeProcessFile: emptyFn,
@@ -111,7 +110,10 @@ module.exports = {
 
     const existingDistFiles = await file.readdirAsync(dist);
 
-    if (hooks.onInvalidDistDir && existingDistFiles.length) {
+    if (
+      typeof hooks.onInvalidDistDir === 'function' &&
+      existingDistFiles.length
+    ) {
       return hooks.onInvalidDistDir(dist);
     }
 
