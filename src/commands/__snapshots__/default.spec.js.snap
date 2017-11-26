@@ -9,7 +9,6 @@ Array [
       "onBeforeProcessFile": [Function],
       "onBeforeReadFile": [Function],
       "onBeforeWriteFile": [Function],
-      "onInvalidDistDir": [Function],
     },
     "template": Object {
       "args": Object {

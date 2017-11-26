@@ -111,7 +111,7 @@ module.exports = {
 
     const existingDistFiles = await file.readdirAsync(dist);
 
-    if (existingDistFiles.length) {
+    if (hooks.onInvalidDistDir && existingDistFiles.length) {
       return hooks.onInvalidDistDir(dist);
     }
 

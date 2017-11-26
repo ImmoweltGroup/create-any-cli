@@ -59,7 +59,6 @@ class DefaultCommand extends Command {
         ignore: ['create-config.js', '*/node_modules/*']
       },
       hooks: {
-        onInvalidDistDir: this.onInvalidDistDir,
         onBeforeReadFile: this.onBeforeReadFile,
         onBeforeProcessFile: this.onBeforeProcessFile,
         onBeforeWriteFile: this.onBeforeWriteFile,
@@ -192,14 +191,6 @@ class DefaultCommand extends Command {
       interactiveQuestions
     };
   }
-
-  onInvalidDistDir = (distDir: string) => {
-    this.fail(
-      'Target folder',
-      distDir,
-      'is not empty, skipping any further operations...'
-    );
-  };
 
   onBeforeReadFile = async ({filePaths}: TemplateHookArgsType) => {
     this.log('start', 'Reading file', filePaths.dist);
