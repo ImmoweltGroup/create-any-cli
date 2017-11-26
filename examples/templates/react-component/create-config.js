@@ -12,8 +12,12 @@ const path = require('path');
 module.exports = {
   id: 'react-component',
   description: 'A basic template example on how the create CLI can be used.',
-  resolveFiles: async () => ['*/**'],
-  resolveQuestions: async () => [{
+  resolveQuestions: async (flags) => [{
+    type: 'input',
+    name: 'name',
+    message: 'What is the name for the React Component?',
+    validate: Boolean
+  }, {
     type: 'input',
     name: 'npmScope',
     message: 'What is the NPM organization scope for the React Component? (Optional)',
@@ -26,13 +30,14 @@ module.exports = {
     }
   }, {
     type: 'input',
-    name: 'name',
-    message: 'What is the name for the React Component?',
-    validate: Boolean
+    name: 'dist',
+    message: 'What is target folder for the template? (Optional)',
+    filter: str => {
+      return str || flags.dist || 'examples/results';
+    }
   }],
-  resolveDestinationFolder: async (answers, flags) => {
-    const {dist = 'examples/results'} = flags;
-
-    return path.join(process.cwd(), dist);
+  resolveFiles: async (answers, flags) => ['*/**'],
+  resolveDestinationFolder: async (answers, args, flags) => {
+    return path.join(process.cwd(), answers.dist);
   }
 };

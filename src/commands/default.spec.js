@@ -98,6 +98,7 @@ describe('new DefaultCommand().exec()', () => {
     expect(template.config.resolveDestinationFolder).toHaveBeenCalledTimes(1);
     expect(template.config.resolveDestinationFolder).toHaveBeenCalledWith(
       answers,
+      answers,
       instance.cli.flags
     );
 

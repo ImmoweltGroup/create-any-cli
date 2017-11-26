@@ -38,7 +38,7 @@ A function that will be invoked with the answers of the resolved questions and C
 #### `opts.createTemplateArgs: (answers: Object, flags: Object) => Object` (Optional)
 A function that will be invoked with the answers of the resolved questions and CLI flags. It should return the template arguments object. Falls back to the [`createDecoratedTemplateArgs`](/docs/api/createDecoratedTemplateArgs.md) function which should be fine for 99% of all use cases.
 
-#### `opts.resolveDestinationFolder: (answers: Object, flags: Object) => Object` (Optional)
-A function that will be invoked with the answers of the resolved questions and CLI flags. It should return the full path pointing to the folder in which all files should be moved into after processing their contents. Falls back to a function that returns the `process.cwd()`.
+#### `opts.resolveDestinationFolder: (answers: Object, args: Object, flags: Object) => Object` (Optional)
+A function that will be invoked with the answers of the resolved questions, the template arguments and the CLI flags. It should return the full path pointing to the folder in which all files should be moved into after processing their contents. Falls back to a function that returns the `process.cwd()`.
 
 If the path/folder does not exist it will be created, be aware that we require the folder to be empty, if that is not the case the scaffold will not be moved into the directory.

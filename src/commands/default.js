@@ -46,6 +46,7 @@ class DefaultCommand extends Command {
     );
     const distDir = await template.config.resolveDestinationFolder(
       answers,
+      args,
       this.cli.flags
     );
 

@@ -54,6 +54,7 @@ export type CreateTemplateArgsType = (
 ) => TemplateArgsType | Promise<TemplateArgsType>;
 export type ResolveDestinationFolderType = (
   answers: AnswersType,
+  args: TemplateArgsType,
   flags: CliFlagsType
 ) => string | Promise<string>;
 
