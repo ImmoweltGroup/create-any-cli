@@ -32,7 +32,7 @@ class Command {
         templates: []
       }
     },
-    help: `Effortlessly create new files or modules based upon templates in your application.
+    help: `Effortlessly create new files or modules based upon templates.
 
 Usage:
   $ create [template-id] <...options>

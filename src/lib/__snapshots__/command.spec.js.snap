@@ -2,7 +2,7 @@
 
 exports[`new Command().resolveAndPrintHelp() should log the regular CLI help if no template id was given. 1`] = `
 Array [
-  "Effortlessly create new files or modules based upon templates in your application.
+  "Effortlessly create new files or modules based upon templates.
 
 Usage:
   $ create [template-id] <...options>
