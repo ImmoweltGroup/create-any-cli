@@ -1,0 +1,15 @@
+# Summary
+
+* [Read Me](README.md)
+* [1. Introduction](docs/introduction/README.md)
+  * [1.1 Motivation](docs/introduction/Motivation.md)
+* [2. CLI](/docs/cli/README.md)
+  * [2.1 Configuration](/docs/cli/Configuration.md)
+  * [2.2 Usage](/docs/cli/Usage.md)
+* [3. Templates](/docs/templates/README.md)
+  * [3.1 Template Creation](/docs/templates/CreatingTemplates.md)
+  * [3.2 Template Configuration](/docs/templates/Configuration.md)
+* [4. API Reference](docs/api/README.md)
+  * [4.1 createDecoratedTemplateArgs](/docs/api/createDecoratedTemplateArgs.md)
+  * [4.2 processTemplateAndCreate](/docs/api/processTemplateAndCreate.md)
+* [5. FAQ](docs/FAQ.md)
