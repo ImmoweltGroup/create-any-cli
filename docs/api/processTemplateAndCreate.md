@@ -45,7 +45,7 @@ Optional template settings for the `doT` template engine, please refer to the [o
 
 
 ### Options (Hooks)
-#### `opts.hooks: String`
+#### `opts.hooks: Object`
 The object that holds all configuration options regarding the hook functions.
 
 #### `opts.hooks.onInvalidDistDir: Function`

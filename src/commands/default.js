@@ -2,7 +2,6 @@
 
 import type {
   AnswersType,
-  QuestionListType,
   TemplateConfigType,
   TemplateHookArgsType
 } from './../types.js';
@@ -136,64 +135,26 @@ class DefaultCommand extends Command {
   ): Promise<AnswersType> {
     const {id, resolveQuestions} = template.config;
     const questions = await resolveQuestions(this.cli.flags);
-    const {
-      interactiveQuestions,
-      implicitAnswers,
-      implicitQuestions
-    } = await this.groupQuestionsByType(questions);
+    const answers = await api.resolveAndPromptOptions(
+      questions,
+      this.cli.flags,
+      {
+        onInteractiveQuestion: question => {
+          return Object.assign({}, question, {
+            message: createMsg(id, question.message)
+          });
+        },
+        onImplicitQuestion: (question, value) => {
+          const {message} = question;
 
-    this.suspendLogging();
+          this.log('succeed', id, message, String(value));
 
-    implicitQuestions.forEach(question => {
-      const {message, name} = question;
-
-      this.log('succeed', id, message, String(implicitAnswers[name]));
-    });
-
-    const interactiveAnswers = await inquirer.prompt(
-      interactiveQuestions.map(question => {
-        return Object.assign({}, question, {
-          message: createMsg(id, question.message)
-        });
-      })
+          return question;
+        }
+      }
     );
 
-    return {
-      ...implicitAnswers,
-      ...interactiveAnswers
-    };
-  }
-
-  /**
-   * Groups questions by their type (CLI / Interactive prompt). CLI answers have precedence.
-   *
-   * @param  {Array}   questions         The list of inquirer questions.
-   * @return {Promise}                   The Promise that resolves with the grouped answers/questions.
-   */
-  async groupQuestionsByType(questions: QuestionListType) {
-    const interactiveQuestions = [];
-    const implicitQuestions = [];
-    const implicitAnswers: {[string]: mixed} = {};
-    const {flags} = this.cli;
-
-    questions.forEach(question => {
-      const {name, filter = val => val, validate = val => true} = question;
-      const value = filter(flags[name]);
-      const isValid = validate(value);
-
-      if (isValid && (value || value === true || value === 0)) {
-        implicitQuestions.push(question);
-        implicitAnswers[name] = value;
-      } else {
-        interactiveQuestions.push(question);
-      }
-    });
-
-    return {
-      implicitAnswers,
-      implicitQuestions,
-      interactiveQuestions
-    };
+    return answers;
   }
 
   onBeforeReadFile = async ({filePaths}: TemplateHookArgsType) => {

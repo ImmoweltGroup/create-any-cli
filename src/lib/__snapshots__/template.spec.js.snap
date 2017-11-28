@@ -250,3 +250,10 @@ Array [
   },
 ]
 `;
+
+exports[`template.resolveAndPromptOptions() should execute inquirers "prompt" method with the the questions whose answers where not provided within the flags object 1`] = `
+Object {
+  "ask-something": "much interactiveness",
+  "provided-via-cli-flag": "bar",
+}
+`;

@@ -2,6 +2,7 @@
 
 jest.mock('./file.js');
 
+const inquirer = require('inquirer');
 const file: any = require('./file.js');
 const template = require('./template.js');
 
@@ -242,5 +243,88 @@ describe('template.processTemplateAndCreate()', () => {
     expect(hooks.onAfterWriteFile).toHaveBeenCalledTimes(2);
     expect(hooks.onAfterWriteFile.mock.calls[0]).toMatchSnapshot();
     expect(hooks.onAfterWriteFile.mock.calls[1]).toMatchSnapshot();
+  });
+});
+
+describe('template.resolveAndPromptOptions()', () => {
+  let prompt;
+
+  beforeEach(() => {
+    prompt = jest.spyOn(inquirer, 'prompt').mockImplementation(jest.fn());
+  });
+
+  afterEach(() => {
+    // $FlowFixMe: Ignore errors since the jest type-def is out of date.
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
+  });
+
+  it('should be a function', () => {
+    expect(typeof template.resolveAndPromptOptions).toBe('function');
+  });
+
+  it('should return an empty object if no arguments where provided', async () => {
+    const answers = await template.resolveAndPromptOptions();
+
+    expect(answers).toEqual({});
+  });
+
+  it('should execute inquirers "prompt" method with the the questions whose answers where not provided within the flags object', async () => {
+    prompt.mockReturnValueOnce({
+      'ask-something': 'much interactiveness'
+    });
+    const interactiveQuestions = [
+      {
+        type: 'input',
+        name: 'ask-something',
+        message: 'Yo waddup'
+      }
+    ];
+    const questions = [
+      {
+        type: 'input',
+        name: 'provided-via-cli-flag',
+        message: 'Nice'
+      },
+      ...interactiveQuestions
+    ];
+    const flags = {
+      'provided-via-cli-flag': 'bar'
+    };
+    const answers = await template.resolveAndPromptOptions(questions, flags);
+
+    expect(answers).toMatchSnapshot();
+    expect(prompt).toHaveBeenCalledTimes(1);
+    expect(prompt).toHaveBeenCalledWith(interactiveQuestions);
+  });
+
+  it('should support the "onImplicitQuestion" and "onInteractiveQuestion" hooks', async () => {
+    const onImplicitQuestion = jest.fn((q, val) => q);
+    const onInteractiveQuestion = jest.fn(q => q);
+    const questions = [
+      {
+        type: 'input',
+        name: 'provided-via-cli-flag',
+        message: 'Nice'
+      },
+      {
+        type: 'input',
+        name: 'ask-something',
+        message: 'Yo waddup'
+      }
+    ];
+    const flags = {
+      'provided-via-cli-flag': 'bar'
+    };
+    // $FlowFixMe: Ignore errors since the jest.fn is of a different type and that is totally fine for this test case.
+    await template.resolveAndPromptOptions(questions, flags, {
+      onImplicitQuestion,
+      onInteractiveQuestion
+    });
+
+    expect(onImplicitQuestion).toHaveBeenCalledTimes(1);
+    expect(onImplicitQuestion).toHaveBeenCalledWith(questions[0], 'bar');
+    expect(onInteractiveQuestion).toHaveBeenCalledTimes(1);
+    expect(onInteractiveQuestion).toHaveBeenCalledWith(questions[1]);
   });
 });

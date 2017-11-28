@@ -190,21 +190,9 @@ describe('new DefaultCommand().resolveTemplateConfiguration()', () => {
 
 describe('new DefaultCommand().resolveTemplateAnswers()', () => {
   let instance;
-  let groupQuestionsByType;
-  let prompt;
 
   beforeEach(() => {
     instance = new DefaultCommand({input: [], flags: {}});
-    prompt = jest.spyOn(inquirer, 'prompt').mockImplementation(jest.fn());
-    groupQuestionsByType = jest
-      .spyOn(instance, 'groupQuestionsByType')
-      .mockImplementation(
-        jest.fn(() => ({
-          interactiveQuestions: [],
-          implicitAnswers: {},
-          implicitQuestions: []
-        }))
-      );
   });
 
   afterEach(() => {
@@ -217,24 +205,9 @@ describe('new DefaultCommand().resolveTemplateAnswers()', () => {
     expect(typeof instance.resolveTemplateAnswers).toBe('function');
   });
 
-  it('should return an empty object if no resolveQuestions function was provided in the template', async () => {
-    const template = {
-      cwd: '/foo',
-      config: {
-        id: 'foo-template',
-        description: 'foo',
-        resolveQuestions: jest.fn(() => []),
-        resolveFiles: jest.fn(),
-        createTemplateArgs: jest.fn(),
-        resolveDestinationFolder: jest.fn()
-      }
-    };
-    const answers = await instance.resolveTemplateAnswers(template);
+  it('should resolve the templates questions by invoking the resolveQuestions function and propagate the resolve questions to the "api.resolveTemplateAnswers" method', async () => {
+    api.resolveAndPromptOptions.mockReturnValueOnce({foo: 'bar'});
 
-    expect(answers).toEqual({});
-  });
-
-  it('should resolve the templates questions by invoking the resolveQuestions function and propagate the resolve questions to the "groupQuestionsByType" method', async () => {
     const resolvedQuestions = [];
     const resolveQuestions = jest.fn(() => resolvedQuestions);
     const template = {
@@ -250,102 +223,9 @@ describe('new DefaultCommand().resolveTemplateAnswers()', () => {
     };
     const answers = await instance.resolveTemplateAnswers(template);
 
-    expect(typeof answers).toBe('object');
+    expect(answers).toEqual({foo: 'bar'});
     expect(resolveQuestions).toHaveBeenCalledTimes(1);
-    expect(groupQuestionsByType).toHaveBeenCalledTimes(1);
-    expect(groupQuestionsByType).toHaveBeenCalledWith(resolvedQuestions);
-  });
-
-  it('should execute inquirers "prompt" method with the "interactiveQuestions" array', async () => {
-    const template = {
-      cwd: '/foo',
-      config: {
-        id: 'foo-template',
-        description: 'foo',
-        resolveQuestions: jest.fn(() => []),
-        resolveFiles: jest.fn(),
-        createTemplateArgs: jest.fn(),
-        resolveDestinationFolder: jest.fn()
-      }
-    };
-    const interactiveQuestions = [];
-    groupQuestionsByType.mockReturnValueOnce({
-      interactiveQuestions,
-      implicitAnswers: {},
-      implicitQuestions: []
-    });
-    const answers = await instance.resolveTemplateAnswers(template);
-
-    expect(typeof answers).toBe('object');
-    expect(prompt).toHaveBeenCalledTimes(1);
-    expect(prompt).toHaveBeenCalledWith(interactiveQuestions);
-  });
-});
-
-describe('new DefaultCommand().groupQuestionsByType()', () => {
-  let instance;
-
-  beforeEach(() => {
-    instance = new DefaultCommand({input: [], flags: {}});
-  });
-
-  afterEach(() => {
-    // $FlowFixMe: Ignore errors since the jest type-def is out of date.
-    jest.restoreAllMocks();
-    jest.clearAllMocks();
-  });
-
-  it('should be a function', () => {
-    const instance = new DefaultCommand({input: [], flags: {}});
-
-    expect(typeof instance.groupQuestionsByType).toBe('function');
-  });
-
-  it('should group the given questions depending on the factor if the value was provided in the processes arguments.', async () => {
-    instance.cli.flags = {
-      myImplicitQuestion: 'foo'
-    };
-    const results = await instance.groupQuestionsByType([
-      {
-        name: 'myInteractiveQuestion',
-        type: 'input',
-        message: 'You should really type this'
-      },
-      {
-        name: 'myImplicitQuestion',
-        type: 'input',
-        message: 'You should really type this'
-      }
-    ]);
-
-    expect(typeof results).toBe('object');
-    expect(results.interactiveQuestions).toHaveLength(1);
-    expect(results.implicitQuestions).toHaveLength(1);
-    expect(results.implicitAnswers.myImplicitQuestion).toBe('foo');
-  });
-
-  it('should respect the questions "validate" and "filter" functions.', async () => {
-    const filter = jest.fn(value => value + 'bar');
-    const validate = jest.fn(value => value);
-
-    instance.cli.flags = {
-      myImplicitQuestion: 'foo'
-    };
-    await instance.groupQuestionsByType([
-      {
-        name: 'myImplicitQuestion',
-        type: 'input',
-        message: 'You should really type this',
-        validate,
-        filter
-      }
-    ]);
-
-    expect(filter).toHaveBeenCalledTimes(1);
-    expect(filter).toHaveBeenCalledWith('foo');
-
-    expect(validate).toHaveBeenCalledTimes(1);
-    expect(validate).toHaveBeenCalledWith('foobar');
+    expect(api.resolveAndPromptOptions).toHaveBeenCalledTimes(1);
   });
 });
 

@@ -12,4 +12,5 @@
 * [4. API Reference](docs/api/README.md)
   * [4.1 createDecoratedTemplateArgs](/docs/api/createDecoratedTemplateArgs.md)
   * [4.2 processTemplateAndCreate](/docs/api/processTemplateAndCreate.md)
+  * [4.3 resolveAndPromptOptions](/docs/api/resolveAndPromptOptions.md)
 * [5. FAQ](docs/FAQ.md)

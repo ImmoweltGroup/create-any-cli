@@ -1,6 +1,8 @@
 // @flow
 
 import type {
+  QuestionType,
+  QuestionListType,
   DecoratedTemplateArgsType,
   FilePatternListType,
   TemplateArgsType,
@@ -10,6 +12,7 @@ import type {
 const path = require('path');
 const dot = require('dot');
 const lodash = require('lodash');
+const inquirer = require('inquirer');
 const file = require('./file.js');
 
 module.exports = {
@@ -200,5 +203,63 @@ module.exports = {
       ...dot.templateSettings,
       strip: false
     })(args);
+  },
+
+  /**
+   * Tries to resolve the answers of the given inquirer.js questions
+   * either via the CLI options or via an interactive prompt.
+   *
+   * @param  {Array}  questions The list of inquirer questions to either resolve from the CLI or the interactive prompt.
+   * @param  {Object}    hooks  An optional hooks object to modify / log the questions based on their type.
+   * @return {Promise}          The Promise that resolves with the answers object of both the interactive prompt and the CLI.
+   */
+  async resolveAndPromptOptions(
+    questions?: QuestionListType = [],
+    flags?: Object = {},
+    hooks?: {
+      onImplicitQuestion: (
+        question: QuestionType,
+        value: mixed
+      ) => Promise<QuestionType> | QuestionType,
+      onInteractiveQuestion: (
+        question: QuestionType
+      ) => Promise<QuestionType> | QuestionType
+    }
+  ): Promise<{[string]: mixed}> {
+    const interactiveQuestions = [];
+    const implicitQuestions = [];
+    const implicitAnswers: {[string]: mixed} = {};
+
+    hooks = lodash.merge(
+      {
+        onImplicitQuestion: question => question,
+        onInteractiveQuestion: question => question
+      },
+      hooks
+    );
+
+    for (let q of questions) {
+      const {name, filter = val => val, validate = val => true} = q;
+      const value = filter(flags[name]);
+      const isValid = validate(value);
+
+      if (isValid && (value || value === true || value === 0)) {
+        const question = await hooks.onImplicitQuestion(q, value);
+
+        implicitQuestions.push(question);
+        implicitAnswers[name] = value;
+      } else {
+        const question = await hooks.onInteractiveQuestion(q);
+
+        interactiveQuestions.push(question);
+      }
+    }
+
+    const interactiveAnswers = await inquirer.prompt(interactiveQuestions);
+
+    return {
+      ...implicitAnswers,
+      ...interactiveAnswers
+    };
   }
 };
