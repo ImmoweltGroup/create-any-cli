@@ -89,7 +89,7 @@ module.exports = {
         template: {
           filePatterns: ['*/**'],
           ignore: [],
-          settings: undefined
+          settings: {}
         },
         hooks: {
           onFile: () => ({}),
@@ -137,7 +137,7 @@ module.exports = {
         .replace(src, '');
       const filePaths = {
         src: relativeFilePath,
-        dist: this.template(relativeFilePath, args, options.template.options)
+        dist: this.template(relativeFilePath, args, options.template.settings)
       };
       let hookArgs: TemplateHookArgsType = {
         filePaths,
@@ -172,7 +172,7 @@ module.exports = {
       // Process file
       //
       await hooks.onBeforeProcessFile(hookArgs);
-      const data = this.template(contents, args, options.template.options);
+      const data = this.template(contents, args, options.template.settings);
       hookArgs = lodash.merge({}, hookArgs, {
         data: {
           processed: data
@@ -199,8 +199,8 @@ module.exports = {
    */
   template(str: string, args: TemplateArgsType, templateSettings: Object = {}) {
     return dot.template(str, {
-      ...templateSettings,
       ...dot.templateSettings,
+      ...templateSettings,
       strip: false
     })(args);
   },
