@@ -51,6 +51,9 @@ The object that holds all configuration options regarding the hook functions.
 #### `opts.hooks.onInvalidDistDir: Function`
 Optional hook function that will be called if the `distDir` is not empty.
 
+#### `opts.hooks.onTemplate: Function`
+Optional hook function with which you can use your own template engine. It will be invoked with the string to process (first call the file-path, second call the file-contents), as well as the template arguments and the settings provided during the call of the `processTemplateAndCreate` function.
+
 #### `opts.hooks.onFile: Function`
 Optional hook function that will be called on each file to process, this function can return a context object that will be propagated to all file based hook functions.
 

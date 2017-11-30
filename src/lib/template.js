@@ -78,6 +78,11 @@ module.exports = {
       onBeforeReadFile?: (opts: TemplateHookArgsType) => Promise<*> | void,
       onAfterReadFile?: (opts: TemplateHookArgsType) => Promise<*> | void,
       onBeforeProcessFile?: (opts: TemplateHookArgsType) => Promise<*> | void,
+      onTemplate?: (
+        str: string,
+        args: TemplateArgsType,
+        settings: Object | void
+      ) => Promise<string> | string,
       onAfterProcessFile?: (opts: TemplateHookArgsType) => Promise<*> | void,
       onBeforeWriteFile?: (opts: TemplateHookArgsType) => Promise<*> | void,
       onAfterWriteFile?: (opts: TemplateHookArgsType) => Promise<*> | void
@@ -93,6 +98,7 @@ module.exports = {
         },
         hooks: {
           onFile: () => ({}),
+          onTemplate: (...args) => this.template(...args),
           onBeforeReadFile: emptyFn,
           onAfterReadFile: emptyFn,
           onBeforeProcessFile: emptyFn,
@@ -132,12 +138,17 @@ module.exports = {
     });
 
     for (let filePath of files) {
-      const relativeFilePath = filePath
+      const relativeSrcFilePath = filePath
         .replace(src + path.sep, '')
         .replace(src, '');
+      const relativeDistFilePath = await hooks.onTemplate(
+        relativeSrcFilePath,
+        args,
+        options.template.settings
+      );
       const filePaths = {
-        src: relativeFilePath,
-        dist: this.template(relativeFilePath, args, options.template.settings)
+        src: relativeSrcFilePath,
+        dist: relativeDistFilePath
       };
       let hookArgs: TemplateHookArgsType = {
         filePaths,
@@ -172,7 +183,11 @@ module.exports = {
       // Process file
       //
       await hooks.onBeforeProcessFile(hookArgs);
-      const data = this.template(contents, args, options.template.settings);
+      const data = await hooks.onTemplate(
+        contents,
+        args,
+        options.template.settings
+      );
       hookArgs = lodash.merge({}, hookArgs, {
         data: {
           processed: data
@@ -197,7 +212,11 @@ module.exports = {
    * @param  {Object} templateSettings An optional settings object to use.
    * @return {String}                  The processed template-
    */
-  template(str: string, args: TemplateArgsType, templateSettings: Object = {}) {
+  async template(
+    str: string,
+    args: TemplateArgsType,
+    templateSettings: Object = {}
+  ) {
     return dot.template(str, {
       ...dot.templateSettings,
       ...templateSettings,

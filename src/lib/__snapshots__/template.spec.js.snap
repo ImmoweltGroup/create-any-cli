@@ -251,6 +251,46 @@ Array [
 ]
 `;
 
+exports[`template.processTemplateAndCreate() should support overriding the template engine with the "onTemplate" hook. 1`] = `
+Array [
+  "package.json",
+  Object {
+    "name": "My App",
+  },
+  Object {},
+]
+`;
+
+exports[`template.processTemplateAndCreate() should support overriding the template engine with the "onTemplate" hook. 2`] = `
+Array [
+  "{\\"name\\": \\"{{=it.name}}\\"}",
+  Object {
+    "name": "My App",
+  },
+  Object {},
+]
+`;
+
+exports[`template.processTemplateAndCreate() should support overriding the template engine with the "onTemplate" hook. 3`] = `
+Array [
+  "{{=it.name}}/foo.txt",
+  Object {
+    "name": "My App",
+  },
+  Object {},
+]
+`;
+
+exports[`template.processTemplateAndCreate() should support overriding the template engine with the "onTemplate" hook. 4`] = `
+Array [
+  "The application name is: {{=it.name.toUpperCase()}}",
+  Object {
+    "name": "My App",
+  },
+  Object {},
+]
+`;
+
 exports[`template.resolveAndPromptOptions() should execute inquirers "prompt" method with the the questions whose answers where not provided within the flags object 1`] = `
 Object {
   "ask-something": "much interactiveness",

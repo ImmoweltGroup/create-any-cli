@@ -113,6 +113,29 @@ describe('template.processTemplateAndCreate()', () => {
     expect(file.writeFileAsync).toHaveBeenCalledTimes(0);
   });
 
+  it('should support overriding the template engine with the "onTemplate" hook.', async () => {
+    const hooks = {
+      onTemplate: jest.fn(str => str + 'foo')
+    };
+    await template.processTemplateAndCreate({
+      dist: '/usr/bar',
+      template: {
+        src: '/usr/foo',
+        args: {
+          name: 'My App'
+        },
+        filePatterns: ['src/*']
+      },
+      hooks
+    });
+
+    expect(hooks.onTemplate).toHaveBeenCalledTimes(4);
+    expect(hooks.onTemplate.mock.calls[0]).toMatchSnapshot();
+    expect(hooks.onTemplate.mock.calls[1]).toMatchSnapshot();
+    expect(hooks.onTemplate.mock.calls[2]).toMatchSnapshot();
+    expect(hooks.onTemplate.mock.calls[3]).toMatchSnapshot();
+  });
+
   it('should execute the hook "onBeforeReadFile" function.', async () => {
     const hooks = {
       onFile: jest.fn(() => ({someMockContext: true})),
