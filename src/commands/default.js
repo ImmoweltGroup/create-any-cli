@@ -135,6 +135,10 @@ class DefaultCommand extends Command {
   ): Promise<AnswersType> {
     const {id, resolveQuestions} = template.config;
     const questions = await resolveQuestions(this.cli.flags);
+
+    // Suspend the logging since it would conflict with the inquirer prompt otherwise.
+    this.suspendLogging();
+
     const answers = await api.resolveAndPromptOptions(
       questions,
       this.cli.flags,

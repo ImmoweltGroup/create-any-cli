@@ -190,9 +190,13 @@ describe('new DefaultCommand().resolveTemplateConfiguration()', () => {
 
 describe('new DefaultCommand().resolveTemplateAnswers()', () => {
   let instance;
+  let suspendLogging;
 
   beforeEach(() => {
     instance = new DefaultCommand({input: [], flags: {}});
+    suspendLogging = jest
+      .spyOn(instance, 'suspendLogging')
+      .mockImplementation(jest.fn());
   });
 
   afterEach(() => {
@@ -224,6 +228,7 @@ describe('new DefaultCommand().resolveTemplateAnswers()', () => {
     const answers = await instance.resolveTemplateAnswers(template);
 
     expect(answers).toEqual({foo: 'bar'});
+    expect(suspendLogging).toHaveBeenCalledTimes(1);
     expect(resolveQuestions).toHaveBeenCalledTimes(1);
     expect(api.resolveAndPromptOptions).toHaveBeenCalledTimes(1);
   });
