@@ -1,7 +1,6 @@
 # create-any-cli
 
 [![Powered by Immowelt](https://img.shields.io/badge/powered%20by-immowelt-yellow.svg?colorB=ffb200)](https://stackshare.io/immowelt-group/)
-[![Greenkeeper badge](https://badges.greenkeeper.io/ImmoweltGroup/create-any-cli.svg)](https://greenkeeper.io/)
 [![Build Status](https://travis-ci.org/ImmoweltGroup/create-any-cli.svg?branch=master)](https://travis-ci.org/ImmoweltGroup/create-any-cli)
 [![Dependency Status](https://david-dm.org/ImmoweltGroup/create-any-cli.svg)](https://david-dm.org/ImmoweltGroup/create-any-cli)
 [![devDependency Status](https://david-dm.org/ImmoweltGroup/create-any-cli/dev-status.svg)](https://david-dm.org/ImmoweltGroup/create-any-cli#info=devDependencies&view=table)
