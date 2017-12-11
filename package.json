@@ -86,7 +86,7 @@
     "chalk": "^2.3.0",
     "dot": "^1.1.2",
     "find-config-up": "^1.1.0",
-    "fs-extra": "^4.0.2",
+    "fs-extra": "^5.0.0",
     "glob": "^7.1.2",
     "inquirer": "^4.0.0",
     "lodash": "^4.17.4",
