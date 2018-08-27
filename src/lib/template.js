@@ -138,9 +138,7 @@ module.exports = {
     });
 
     for (let filePath of files) {
-      const relativeSrcFilePath = filePath
-        .replace(src + path.sep, '')
-        .replace(src, '');
+      const relativeSrcFilePath = path.relative(src, filePath);
       const relativeDistFilePath = await hooks.onTemplate(
         relativeSrcFilePath,
         args,
