@@ -17,24 +17,23 @@
     "jest:watch": "yarn run jest -- --watch",
     "jest:coverage": "yarn run jest -- --coverage",
     "build:clean": "rimraf dist",
-    "build:babel": "NODE_ENV=production babel src --out-dir dist --ignore spec.js",
+    "build:babel":
+      "NODE_ENV=production babel src --out-dir dist --ignore spec.js",
     "build:flow": "flow-copy-source -v src dist --ignore='*.spec.js'",
     "build:watch": "yarn run build:babel -- -w",
     "prebuild": "yarn run build:clean",
     "build": "yarn run build:babel && yarn run build:flow",
     "flow": "flow",
     "flow-typed": "flow-typed",
-    "flow-typed-install": "flow-typed install --ignoreDeps=bundled peer --overwrite",
+    "flow-typed-install":
+      "flow-typed install --ignoreDeps=bundled peer --overwrite",
     "prepare": "yarn run flow-typed-install || true",
     "prepublishOnly": "yarn run build",
     "precommit": "lint-staged && npm test",
-    "semantic-release": "semantic-release pre && npm publish && semantic-release post"
+    "semantic-release": "semantic-release"
   },
   "lint-staged": {
-    "src/**/*.{js,json,css}": [
-      "prettier --write",
-      "git add"
-    ]
+    "src/**/*.{js,json,css}": ["prettier --write", "git add"]
   },
   "engines": {
     "node": ">=8.9.0"
@@ -54,8 +53,6 @@
     "@immowelt/eslint-config-immowelt-react": "2.0.4",
     "@immowelt/jest-preset-node": "1.0.1",
     "@immowelt/styleguide-javascript": "1.0.11",
-    "@inkdpixels/commit-analyzer": "1.0.1",
-    "@inkdpixels/release-notes-generator": "1.0.1",
     "babel-cli": "6.26.0",
     "eslint": "5.4.0",
     "flow-bin": "0.69.0",
@@ -66,17 +63,33 @@
     "lint-staged": "6.1.1",
     "prettier": "1.14.2",
     "rimraf": "2.6.2",
-    "semantic-release": "^8.2.0"
+    "semantic-release": "13.4.1"
   },
   "jest": {
     "preset": "@immowelt/jest-preset-node",
-    "modulePathIgnorePatterns": [
-      "<rootDir>/dist/"
-    ]
+    "modulePathIgnorePatterns": ["<rootDir>/dist/"]
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "release": {
-    "analyzeCommits": "@inkdpixels/commit-analyzer",
-    "generateNotes": "@inkdpixels/release-notes-generator"
+    "analyzeCommits": {
+      "releaseRules": [
+        {
+          "type": "BREAKING",
+          "release": "major"
+        },
+        {
+          "type": "FEATURE",
+          "release": "minor"
+        },
+        {
+          "type": "BUGFIX",
+          "release": "patch"
+        }
+      ]
+    },
+    "branch": "master"
   },
   "repository": {
     "type": "git",
