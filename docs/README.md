@@ -13,4 +13,3 @@
   * [createDecoratedTemplateArgs](/docs/api/createDecoratedTemplateArgs.md)
   * [processTemplateAndCreate](/docs/api/processTemplateAndCreate.md)
   * [resolveAndPromptOptions](/docs/api/resolveAndPromptOptions.md)
-* [FAQ](/docs/FAQ.md)
