@@ -1,6 +1,6 @@
 {
   "name": "{{=it.npmScope.raw}}{{=it.name.kebabCase}}",
   "dependencies": {
-    "react": "16.5.1"
+    "react": "16.5.2"
   }
 }
